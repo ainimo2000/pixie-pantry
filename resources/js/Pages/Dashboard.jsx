@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
+// --- SAFER PATH ---
+import PixelCard from "../Components/PixelCard";
 
 export default function Dashboard({ auth, myRecipes }) {
     const { post } = useForm();
@@ -7,12 +9,12 @@ export default function Dashboard({ auth, myRecipes }) {
     const [noteText, setNoteText] = useState("");
 
     const handleLogout = () => {
-        post(route("logout"));
+        post(window.route("logout"));
     };
 
     const handleDelete = (id) => {
         if (confirm("Are you sure you want to discard this loot?")) {
-            router.delete(route("recipes.destroy", id));
+            router.delete(window.route("recipes.destroy", id));
         }
     };
 
@@ -23,7 +25,7 @@ export default function Dashboard({ auth, myRecipes }) {
 
     const saveNote = (id) => {
         router.put(
-            route("recipes.update", id),
+            window.route("recipes.update", id),
             { notes: noteText },
             {
                 onSuccess: () => setEditingId(null),
@@ -72,7 +74,6 @@ export default function Dashboard({ auth, myRecipes }) {
                     </div>
                 </nav>
 
-                {/* MAIN CONTENT */}
                 <main className="max-w-6xl mx-auto px-6 py-10 relative z-10">
                     <div className="bg-white border-4 border-magical-border shadow-pixel p-6 mb-12 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
@@ -102,6 +103,28 @@ export default function Dashboard({ auth, myRecipes }) {
                                     key={item.id}
                                     className="bg-magical-card border-4 border-magical-border p-4 shadow-pixel relative group"
                                 >
+                                    {/* === GIANT DEBUG BANNER & BUTTONS === */}
+                                    <div className="bg-black text-white p-2 text-center text-[10px] font-bold mb-2">
+                                        DEBUG MODE: BUTTONS ARE BELOW
+                                    </div>
+                                    <div className="flex gap-2 mb-4">
+                                        <button
+                                            onClick={() => startEditing(item)}
+                                            className="flex-1 bg-yellow-300 text-black border-2 border-black p-2 font-bold hover:bg-yellow-500"
+                                        >
+                                            ✎ NOTES
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleDelete(item.id)
+                                            }
+                                            className="flex-1 bg-red-500 text-white border-2 border-black p-2 font-bold hover:bg-red-700"
+                                        >
+                                            🗑 DISCARD
+                                        </button>
+                                    </div>
+                                    {/* ==================================== */}
+
                                     <div className="flex gap-4">
                                         <div className="border-2 border-magical-pink p-1 bg-white shrink-0 h-20 w-20">
                                             <img
@@ -161,25 +184,6 @@ export default function Dashboard({ auth, myRecipes }) {
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* --- BUTTONS SECTION START --- */}
-                                    <div className="mt-4 flex gap-2 pt-4 border-t-2 border-magical-border/20">
-                                        <button
-                                            onClick={() => startEditing(item)}
-                                            className="flex-1 bg-yellow-300 text-magical-dark font-pixel text-[8px] py-2 border-2 border-black shadow-sm hover:bg-yellow-400"
-                                        >
-                                            ✎ NOTES
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                handleDelete(item.id)
-                                            }
-                                            className="flex-1 bg-red-400 text-white font-pixel text-[8px] py-2 border-2 border-black shadow-sm hover:bg-red-500"
-                                        >
-                                            🗑 DISCARD
-                                        </button>
-                                    </div>
-                                    {/* --- BUTTONS SECTION END --- */}
                                 </div>
                             ))
                         ) : (

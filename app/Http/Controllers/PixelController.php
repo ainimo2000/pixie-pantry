@@ -45,4 +45,36 @@ class PixelController extends Controller
 
         return redirect()->back();
     }
+
+    // Show Create Page
+    public function create()
+    {
+        return Inertia::render('Recipes/Create');
+    }
+
+    // Save Custom Recipe
+    public function storeCustom(Request $request)
+    {
+        $request->validate([
+            'title' => 'required',
+            'image' => 'required|url',
+        ]);
+
+        SavedRecipe::create([
+            'user_id' => Auth::id(),
+            'title' => $request->title,
+            'image' => $request->image,
+            'ingredients' => $request->ingredients,
+            'instructions' => $request->instructions,
+            'api_id' => null, // It's custom, so no API ID
+        ]);
+
+        return redirect()->route('dashboard');
+    }
+
+    // Show About Page
+    public function about()
+    {
+        return Inertia::render('About');
+    }
 }
