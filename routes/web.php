@@ -18,4 +18,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// 3. Save Recipe (Protected)
+Route::post('/recipes', [PixelController::class, 'store'])
+    ->middleware(['auth'])
+    ->name('recipes.store');
+
+// 4. UPDATE Note (New!)
+Route::put('/recipes/{id}', [PixelController::class, 'update'])
+    ->middleware(['auth'])
+    ->name('recipes.update');
+
+// 5. DELETE Recipe (New!)
+Route::delete('/recipes/{id}', [PixelController::class, 'destroy'])
+    ->middleware(['auth'])
+    ->name('recipes.destroy');
+
 require __DIR__ . '/auth.php';

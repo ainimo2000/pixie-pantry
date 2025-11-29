@@ -24,4 +24,25 @@ class PixelController extends Controller
             'recipes' => $recipes,
         ]);
     }
+
+    // 4. Update the Note (The "Edit" Feature)
+    public function update(Request $request, $id)
+    {
+        $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
+
+        $recipe->update([
+            'notes' => $request->notes
+        ]);
+
+        return redirect()->back();
+    }
+
+    // 5. Delete the Recipe (The "Remove" Feature)
+    public function destroy($id)
+    {
+        $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
+        $recipe->delete();
+
+        return redirect()->back();
+    }
 }
