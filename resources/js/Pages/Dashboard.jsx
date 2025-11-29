@@ -3,8 +3,6 @@ import { Head, Link, useForm, router } from "@inertiajs/react";
 
 export default function Dashboard({ auth, myRecipes }) {
     const { post } = useForm();
-
-    // State to track which card is being edited
     const [editingId, setEditingId] = useState(null);
     const [noteText, setNoteText] = useState("");
 
@@ -12,28 +10,23 @@ export default function Dashboard({ auth, myRecipes }) {
         post(route("logout"));
     };
 
-    // 1. DELETE FUNCTION
     const handleDelete = (id) => {
         if (confirm("Are you sure you want to discard this loot?")) {
             router.delete(route("recipes.destroy", id));
         }
     };
 
-    // 2. START EDITING
     const startEditing = (recipe) => {
         setEditingId(recipe.id);
         setNoteText(recipe.notes || "");
     };
 
-    // 3. SAVE EDIT (UPDATE)
     const saveNote = (id) => {
         router.put(
             route("recipes.update", id),
+            { notes: noteText },
             {
-                notes: noteText,
-            },
-            {
-                onSuccess: () => setEditingId(null), // Close edit mode on success
+                onSuccess: () => setEditingId(null),
             }
         );
     };
@@ -41,7 +34,6 @@ export default function Dashboard({ auth, myRecipes }) {
     return (
         <>
             <Head title="My Quest Log" />
-
             <div className="min-h-screen bg-magical-bg font-sans text-magical-dark relative selection:bg-magical-pink selection:text-white">
                 <div
                     className="absolute inset-0 opacity-10 pointer-events-none"
@@ -52,7 +44,7 @@ export default function Dashboard({ auth, myRecipes }) {
                     }}
                 ></div>
 
-                {/* --- NAVIGATION --- */}
+                {/* NAVIGATION */}
                 <nav className="bg-magical-pink border-b-4 border-magical-border p-4 sticky top-0 z-50 shadow-lg">
                     <div className="max-w-7xl mx-auto flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -80,7 +72,7 @@ export default function Dashboard({ auth, myRecipes }) {
                     </div>
                 </nav>
 
-                {/* --- MAIN INVENTORY --- */}
+                {/* MAIN CONTENT */}
                 <main className="max-w-6xl mx-auto px-6 py-10 relative z-10">
                     <div className="bg-white border-4 border-magical-border shadow-pixel p-6 mb-12 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
@@ -121,13 +113,10 @@ export default function Dashboard({ auth, myRecipes }) {
                                                 }}
                                             />
                                         </div>
-
                                         <div className="flex flex-col w-full">
                                             <h3 className="font-pixel text-[10px] text-magical-dark leading-snug mb-2">
                                                 {item.title}
                                             </h3>
-
-                                            {/* --- EDIT MODE LOGIC --- */}
                                             {editingId === item.id ? (
                                                 <div className="flex flex-col gap-2">
                                                     <input
@@ -173,7 +162,7 @@ export default function Dashboard({ auth, myRecipes }) {
                                         </div>
                                     </div>
 
-                                    {/* --- BUTTONS ARE RIGHT HERE --- */}
+                                    {/* --- BUTTONS SECTION START --- */}
                                     <div className="mt-4 flex gap-2 pt-4 border-t-2 border-magical-border/20">
                                         <button
                                             onClick={() => startEditing(item)}
@@ -190,7 +179,7 @@ export default function Dashboard({ auth, myRecipes }) {
                                             🗑 DISCARD
                                         </button>
                                     </div>
-                                    {/* ----------------------------- */}
+                                    {/* --- BUTTONS SECTION END --- */}
                                 </div>
                             ))
                         ) : (
@@ -198,12 +187,6 @@ export default function Dashboard({ auth, myRecipes }) {
                                 <p className="font-pixel text-xs text-magical-dark mb-4">
                                     YOUR BAG IS EMPTY
                                 </p>
-                                <Link
-                                    href="/"
-                                    className="underline text-magical-pink"
-                                >
-                                    Go collect some items!
-                                </Link>
                             </div>
                         )}
                     </div>
