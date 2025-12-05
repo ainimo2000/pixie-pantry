@@ -10,83 +10,48 @@ import {
 import PixelCard from "../Components/PixelCard";
 import RecipeModal from "../Components/RecipeModal";
 import PixelChef from "../Components/PixelChef";
-
-// --- LOADING SCREEN ---
-function LoadingScreen({ visible }) {
-    return (
-        <AnimatePresence>
-            {visible && (
-                <motion.div
-                    initial={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="fixed inset-0 z-[9999] bg-magical-bg flex flex-col items-center justify-center font-pixel"
-                >
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            rotate: [0, 10, -10, 0],
-                        }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="text-6xl mb-6"
-                    >
-                        🧙‍♀️
-                    </motion.div>
-                    <div className="w-48 h-4 border-2 border-magical-dark p-1 rounded-full">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 2 }}
-                            className="h-full bg-magical-pink rounded-full"
-                        />
-                    </div>
-                    <h2 className="mt-4 text-magical-dark text-xs tracking-widest animate-pulse">
-                        GENERATING PIXELS...
-                    </h2>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-}
+import DonutLoader from "../Components/DonutLoader"; // Import the new loader
 
 export default function Welcome({ auth, recipes }) {
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [scrolled, setScrolled] = useState(false);
 
-    // SCROLL ANIMATIONS (Parallax)
+    // Parallax Scroll
     const { scrollY } = useScroll();
-    const bgY = useTransform(scrollY, [0, 1000], [0, 300]); // Background moves slow
-    const floatY = useTransform(scrollY, [0, 1000], [0, -100]); // Floating items move fast
+    const bgY = useTransform(scrollY, [0, 1000], [0, 300]);
+    const floatY = useTransform(scrollY, [0, 1000], [0, -100]);
 
     useEffect(() => {
-        setTimeout(() => setIsLoading(false), 2000);
+        setTimeout(() => setIsLoading(false), 2500); // 2.5s load time
         const handleScroll = () => setScrolled(window.scrollY > 50);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Stagger animation for grid
+    // Animation Variants
     const container = {
         hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 },
-        },
+        show: { opacity: 1, transition: { staggerChildren: 0.1 } },
     };
-
     const itemAnim = {
         hidden: { opacity: 0, y: 50 },
         show: { opacity: 1, y: 0 },
+    };
+    const sectionVariant = {
+        hidden: { opacity: 0, y: 50 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
     };
 
     return (
         <>
             <Head title="Pixie's Pantry" />
-            <LoadingScreen visible={isLoading} />
+
+            {/* USE THE NEW COMPONENT HERE */}
+            <DonutLoader visible={isLoading} />
 
             <div className="bg-magical-bg font-sans text-magical-dark relative selection:bg-magical-pink selection:text-white overflow-x-hidden">
-                {/* PARALLAX BACKGROUND LAYER */}
+                {/* PARALLAX BACKGROUND */}
                 <motion.div
                     style={{ y: bgY }}
                     className="fixed inset-0 opacity-10 pointer-events-none"
@@ -154,7 +119,6 @@ export default function Welcome({ auth, recipes }) {
 
                 {/* --- SECTION 1: INTERACTIVE HERO --- */}
                 <section className="min-h-screen flex items-center justify-center relative pt-20 overflow-hidden">
-                    {/* Floating Background Props */}
                     <motion.div
                         style={{ y: floatY }}
                         className="absolute top-20 left-10 text-8xl opacity-20 rotate-12 pointer-events-none"
@@ -199,17 +163,20 @@ export default function Welcome({ auth, recipes }) {
                                 )}
                             </motion.div>
                         </div>
-
-                        {/* ANIMATED CHEF HERE */}
                         <div className="flex-1 flex justify-center relative">
                             <PixelChef />
                         </div>
                     </div>
                 </section>
 
-                {/* --- SECTION 2: THE STORY (Interactive Cards) --- */}
-                <section className="py-24 bg-white border-y-4 border-magical-border relative overflow-hidden">
-                    {/* Animated Pixies in Background */}
+                {/* --- SECTION 2: THE STORY --- */}
+                <motion.section
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={sectionVariant}
+                    className="py-24 bg-white border-y-4 border-magical-border relative overflow-hidden"
+                >
                     <motion.div
                         animate={{ x: [0, 100, 0], y: [0, -50, 0] }}
                         transition={{ duration: 10, repeat: Infinity }}
@@ -217,7 +184,6 @@ export default function Welcome({ auth, recipes }) {
                     >
                         🧚‍♀️
                     </motion.div>
-
                     <div className="container mx-auto px-6 relative z-10">
                         <div className="text-center mb-16">
                             <h2 className="font-pixel text-3xl text-magical-dark mb-4">
@@ -227,7 +193,6 @@ export default function Welcome({ auth, recipes }) {
                                 YOUR JOURNEY BEGINS HERE
                             </p>
                         </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {[
                                 {
@@ -271,9 +236,9 @@ export default function Welcome({ auth, recipes }) {
                             ))}
                         </div>
                     </div>
-                </section>
+                </motion.section>
 
-                {/* --- SECTION 3: SHOWCASE (Animated Grid) --- */}
+                {/* --- SECTION 3: SHOWCASE --- */}
                 <section className="py-24 bg-magical-card relative overflow-hidden">
                     <div className="container mx-auto px-6">
                         <div className="flex justify-between items-end mb-12">
@@ -291,7 +256,6 @@ export default function Welcome({ auth, recipes }) {
                                 </span>
                             </div>
                         </div>
-
                         <motion.div
                             variants={container}
                             initial="hidden"
@@ -312,7 +276,6 @@ export default function Welcome({ auth, recipes }) {
                                 </motion.div>
                             ))}
                         </motion.div>
-
                         <div className="text-center mt-12">
                             <button className="font-pixel text-xs border-b-2 border-magical-dark pb-1 hover:text-magical-pink transition-colors">
                                 LOAD MORE ITEMS...
@@ -321,9 +284,14 @@ export default function Welcome({ auth, recipes }) {
                     </div>
                 </section>
 
-                {/* --- SECTION 4: THE DYNAMIC FINALE --- */}
-                <section className="py-32 bg-magical-dark text-white text-center relative overflow-hidden">
-                    {/* Rotating Background */}
+                {/* --- SECTION 4: THE FINALE --- */}
+                <motion.section
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={sectionVariant}
+                    className="py-32 bg-magical-dark text-white text-center relative overflow-hidden"
+                >
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{
@@ -333,7 +301,6 @@ export default function Welcome({ auth, recipes }) {
                         }}
                         className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] opacity-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"
                     ></motion.div>
-
                     <div className="relative z-10 max-w-2xl mx-auto px-6">
                         <motion.div
                             initial={{ scale: 0.8, opacity: 0 }}
@@ -346,10 +313,9 @@ export default function Welcome({ auth, recipes }) {
                             READY PLAYER ONE?
                         </h2>
                         <p className="font-pixel text-xs mb-10 leading-loose tracking-widest max-w-lg mx-auto">
-                            THE KITCHEN IS A DANGEROUS PLACE TO GO ALONE. <br />
+                            THE KITCHEN IS A DANGEROUS PLACE TO GO ALONE. <br />{" "}
                             TAKE THESE RECIPES WITH YOU.
                         </p>
-
                         {!auth?.user ? (
                             <Link
                                 href={window.route("register")}
@@ -366,14 +332,11 @@ export default function Welcome({ auth, recipes }) {
                             </Link>
                         )}
                     </div>
-                </section>
+                </motion.section>
 
-                {/* FOOTER */}
                 <footer className="bg-black text-gray-500 p-8 text-center border-t-4 border-gray-800 font-pixel text-[8px]">
                     <p>PIXIE'S PANTRY © 2025 • DEVELOPED BY GROUP 1</p>
                 </footer>
-
-                {/* MODAL */}
                 {selectedRecipe && (
                     <RecipeModal
                         recipe={selectedRecipe}

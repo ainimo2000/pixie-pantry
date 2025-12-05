@@ -5,27 +5,86 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
+use App\Models\SavedRecipe;
+use Illuminate\Support\Facades\Auth;
 
 class PixelController extends Controller
 {
+    // --- READ (Public) ---
     public function index()
     {
-        // 1. Fetch Data from TheMealDB API
         try {
-            $response = Http::timeout(3)->get('https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert'); //API
+            // Fetch Dessert data from TheMealDB API
+            $response = Http::timeout(5)->get('https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert');
             $recipes = $response->successful() ? $response->json()['meals'] : [];
         } catch (\Exception $e) {
-            // If internet fails, show empty list (or you can add fallback data here)
-            $recipes = [];
+            $recipes = []; // Fail gracefully if API is down
         }
 
-        // 2. Send data to the Frontend
         return Inertia::render('Welcome', [
             'recipes' => $recipes,
         ]);
     }
 
-    // 4. Update the Note (The "Edit" Feature)
+    // --- READ (Private Dashboard) ---
+    public function dashboard()
+    {
+        // Fetch only the logged-in user's recipes
+        $myRecipes = SavedRecipe::where('user_id', Auth::id())->latest()->get();
+
+        return Inertia::render('Dashboard', [
+            'myRecipes' => $myRecipes
+        ]);
+    }
+
+    // --- CREATE (Save from API) ---
+    public function store(Request $request)
+    {
+        // Prevent duplicates
+        $exists = SavedRecipe::where('user_id', Auth::id())
+            ->where('api_id', $request->api_id)
+            ->exists();
+
+        if (!$exists) {
+            SavedRecipe::create([
+                'user_id' => Auth::id(),
+                'api_id' => $request->api_id,
+                'title' => $request->title,
+                'image' => $request->image,
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    // --- CREATE (Custom Recipe) ---
+    public function create()
+    {
+        return Inertia::render('Recipes/Create');
+    }
+
+    public function storeCustom(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'required|url',
+            'ingredients' => 'required',
+            'instructions' => 'required',
+        ]);
+
+        SavedRecipe::create([
+            'user_id' => Auth::id(),
+            'title' => $request->title,
+            'image' => $request->image,
+            'ingredients' => $request->ingredients,
+            'instructions' => $request->instructions,
+            'api_id' => null, // It's custom!
+        ]);
+
+        return redirect()->route('dashboard');
+    }
+
+    // --- UPDATE (Edit Notes) ---
     public function update(Request $request, $id)
     {
         $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
@@ -37,7 +96,7 @@ class PixelController extends Controller
         return redirect()->back();
     }
 
-    // 5. Delete the Recipe (The "Remove" Feature)
+    // --- DELETE (Remove Recipe) ---
     public function destroy($id)
     {
         $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
@@ -46,33 +105,7 @@ class PixelController extends Controller
         return redirect()->back();
     }
 
-    // Show Create Page
-    public function create()
-    {
-        return Inertia::render('Recipes/Create');
-    }
-
-    // Save Custom Recipe
-    public function storeCustom(Request $request)
-    {
-        $request->validate([
-            'title' => 'required',
-            'image' => 'required|url',
-        ]);
-
-        SavedRecipe::create([
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'image' => $request->image,
-            'ingredients' => $request->ingredients,
-            'instructions' => $request->instructions,
-            'api_id' => null, // It's custom, so no API ID
-        ]);
-
-        return redirect()->route('dashboard');
-    }
-
-    // Show About Page
+    // --- READ (About Page) ---
     public function about()
     {
         return Inertia::render('About');
