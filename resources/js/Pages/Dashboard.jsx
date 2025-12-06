@@ -88,12 +88,25 @@ export default function Dashboard({ auth, myRecipes }) {
                                 {myRecipes ? myRecipes.length : 0} recipes.
                             </p>
                         </div>
-                        <Link
-                            href="/"
-                            className="bg-magical-pink text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-dark shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-                        >
-                            + FIND MORE LOOT
-                        </Link>
+
+                        {/* --- MODIFICATION START: Added Second Link --- */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Link
+                                href="/"
+                                className="bg-magical-pink text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-dark shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                            >
+                                + FIND MORE LOOT
+                            </Link>
+
+                            {/* This is the missing CREATE button linking to your creation page */}
+                            <Link
+                                href={window.route("recipes.create")}
+                                className="bg-magical-dark text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-pink shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                            >
+                                + SUBMIT NEW RECIPE
+                            </Link>
+                        </div>
+                        {/* --- MODIFICATION END --- */}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

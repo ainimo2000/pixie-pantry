@@ -256,20 +256,16 @@ export default function Welcome({ auth, recipes }) {
                                 </span>
                             </div>
                         </div>
-                        <motion.div
-                            variants={container}
-                            initial="hidden"
-                            whileInView="show"
-                            viewport={{ once: true }}
-                            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
-                        >
+                        // resources/js/Pages/Welcome.jsx - (SECTION 3:
+                        SHOWCASE) // ... (inside Section 3)
+                        <motion.div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                             {recipes.slice(0, 4).map((recipe) => (
                                 <motion.div
-                                    key={recipe.idMeal}
+                                    key={recipe.idMeal} // Correctly using idMeal from API data
                                     variants={itemAnim}
                                 >
                                     <PixelCard
-                                        recipe={recipe}
+                                        recipe={recipe} // Data is passed here
                                         auth={auth || {}}
                                         onOpen={setSelectedRecipe}
                                     />
