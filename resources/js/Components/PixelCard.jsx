@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useForm, Link } from "@inertiajs/react";
+import React, { useState } from "react"; // <-- ADD THIS IMPORT
 
 export default function PixelCard({
     recipe,
@@ -9,7 +10,35 @@ export default function PixelCard({
     onDelete,
     onEdit,
 }) {
-    // Form helper for "Saving" from Home Page
+    // 1. STATE FOR EDITING NOTES (NEW)
+    const [isNotesEditing, setIsNotesEditing] = useState(false);
+
+    // 2. INERTIA FORM FOR SAVING NOTES (NEW)
+    // We use 'notes' as the key since your text field code used 'notes'
+    const {
+        data: notesData, // Renamed to avoid collision with other 'data'
+        setData: setNotesData,
+        patch, // Use patch for updating existing resource
+        processing: notesProcessing,
+    } = useForm({
+        // Initialize with the recipe's existing note (assuming it's called 'entry' or 'notes' on the recipe object)
+        entry: recipe.entry || "",
+    });
+
+    const handleNotesUpdate = (e) => {
+        e.preventDefault();
+
+        // Send a PATCH request to update the specific recipe note
+        patch(window.route("recipes.update", recipe.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                // HIDE THE INPUT FIELD on successful update
+                setIsNotesEditing(false);
+            },
+        });
+    };
+
+    // Form helper for "Saving" from Home Page (Existing Code)
     const { post, processing } = useForm({
         api_id: recipe.idMeal,
         title: recipe.strMeal,
@@ -22,6 +51,8 @@ export default function PixelCard({
             preserveScroll: true,
         });
     };
+
+    // REMOVE THE UNUSED RecipeCard function that was inside PixelCard.
 
     return (
         <motion.div
@@ -46,9 +77,55 @@ export default function PixelCard({
                 {recipe.strMeal || recipe.title}
             </h3>
 
-            {/* --- BUTTONS AREA --- */}
+            {isDashboard && ( // Only show the notes area on the Dashboard/Quest Log
+                <div className="notes-container my-2 p-1 border-2 border-dashed border-magical-dark/50">
+                    {isNotesEditing ? (
+                        <form
+                            onSubmit={handleNotesUpdate}
+                            className="flex flex-col gap-1"
+                        >
+                            {/* 🎯 MISSING TEXT INPUT FIELD GOES HERE */}
+                            <textarea
+                                value={notesData.entry}
+                                onChange={(e) =>
+                                    setNotesData("entry", e.target.value)
+                                }
+                                placeholder="Enter your quest notes..."
+                                className="w-full p-1 text-[10px] border-magical-pink"
+                            />
+
+                            <div className="flex gap-1">
+                                <button
+                                    type="submit"
+                                    disabled={notesProcessing}
+                                    className="flex-1 bg-green-500 text-white font-pixel text-[8px] py-1 border-2 border-black hover:bg-green-600"
+                                >
+                                    ✓ OK
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsNotesEditing(false)}
+                                    className="flex-1 bg-gray-500 text-white font-pixel text-[8px] py-1 border-2 border-black hover:bg-gray-600"
+                                >
+                                    X CANCEL
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        // 2. VIEW MODE: This is the invisible click area
+                        <p
+                            onClick={() => setIsNotesEditing(true)}
+                            className="text-[9px] cursor-pointer hover:text-magical-pink transition-colors p-1"
+                        ></p>
+                    )}
+                                   {" "}
+                </div>
+            )}
+
+            {/* --- BUTTONS AREA (Existing Code) --- */}
             <div className="flex gap-2 mt-auto">
-                {/* 1. READ BUTTON (Always Visible) */}
+                {/* 1. READ BUTTON */}
+                {/* ... (Existing Read Button code remains here) ... */}
                 {onOpen && (
                     <button
                         onClick={() => onOpen(recipe)}
@@ -58,7 +135,7 @@ export default function PixelCard({
                     </button>
                 )}
 
-                {/* 2. DASHBOARD BUTTONS (Edit/Delete) */}
+                {/* 2. DASHBOARD BUTTONS (Edit/Delete) - Remains the same */}
                 {isDashboard ? (
                     <>
                         <button
@@ -74,7 +151,7 @@ export default function PixelCard({
                             🗑
                         </button>
                     </>
-                ) : /* 3. HOME PAGE BUTTON (Save) */
+                ) : /* 3. HOME PAGE BUTTON (Save/Login) - Remains the same */
                 auth?.user ? (
                     <button
                         onClick={handleSave}

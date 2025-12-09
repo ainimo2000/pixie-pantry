@@ -331,7 +331,7 @@ export default function Welcome({ auth, recipes }) {
                 </motion.section>
 
                 <footer className="bg-black text-gray-500 p-8 text-center border-t-4 border-gray-800 font-pixel text-[8px]">
-                    <p>PIXIE'S PANTRY © 2025 • DEVELOPED BY GROUP 1</p>
+                    <p>PIXIE'S PANTRY © 2025 • DEVELOPED BY GROUP 4</p>
                 </footer>
                 {selectedRecipe && (
                     <RecipeModal

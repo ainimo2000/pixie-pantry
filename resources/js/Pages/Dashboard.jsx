@@ -1,20 +1,30 @@
 import { useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
-// --- SAFER PATH ---
-import PixelCard from "../Components/PixelCard";
+import { Button } from "@headlessui/react";
 
 export default function Dashboard({ auth, myRecipes }) {
     const { post } = useForm();
-    const [editingId, setEditingId] = useState(null);
-    const [noteText, setNoteText] = useState("");
+
+    // Helper function to format the date
+    const formatDate = (timestamp) => {
+        return new Date(timestamp).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
 
     const handleLogout = () => {
         post(window.route("logout"));
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = (recipeId) => {
         if (confirm("Are you sure you want to discard this loot?")) {
-            router.delete(window.route("recipes.destroy", id));
+            router.delete(route("recipes.destroy", recipeId), {
+                preserveScroll: true,
+            });
         }
     };
 
@@ -23,14 +33,28 @@ export default function Dashboard({ auth, myRecipes }) {
         setNoteText(recipe.notes || "");
     };
 
+    // This handles the 'Update' logic
     const saveNote = (id) => {
         router.put(
             window.route("recipes.update", id),
             { notes: noteText },
             {
                 onSuccess: () => setEditingId(null),
+                onError: (errors) => {
+                    console.error(errors);
+                    alert(
+                        "Error saving entry. Please ensure the note is not too long."
+                    );
+                },
             }
         );
+    };
+
+    const handleKeyDown = (e, id) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            saveNote(id);
+        }
     };
 
     return (
@@ -75,6 +99,7 @@ export default function Dashboard({ auth, myRecipes }) {
                 </nav>
 
                 <main className="max-w-6xl mx-auto px-6 py-10 relative z-10">
+                    {/* INVENTORY STATUS */}
                     <div className="bg-white border-4 border-magical-border shadow-pixel p-6 mb-12 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
                             <h2 className="font-pixel text-lg md:text-2xl text-magical-dark mb-2">
@@ -89,7 +114,6 @@ export default function Dashboard({ auth, myRecipes }) {
                             </p>
                         </div>
 
-                        {/* --- MODIFICATION START: Added Second Link --- */}
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Link
                                 href="/"
@@ -98,7 +122,6 @@ export default function Dashboard({ auth, myRecipes }) {
                                 + FIND MORE LOOT
                             </Link>
 
-                            {/* This is the missing CREATE button linking to your creation page */}
                             <Link
                                 href={window.route("recipes.create")}
                                 className="bg-magical-dark text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-pink shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
@@ -106,7 +129,6 @@ export default function Dashboard({ auth, myRecipes }) {
                                 + SUBMIT NEW RECIPE
                             </Link>
                         </div>
-                        {/* --- MODIFICATION END --- */}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -116,27 +138,18 @@ export default function Dashboard({ auth, myRecipes }) {
                                     key={item.id}
                                     className="bg-magical-card border-4 border-magical-border p-4 shadow-pixel relative group"
                                 >
-                                    {/* === GIANT DEBUG BANNER & BUTTONS === */}
-                                    <div className="bg-black text-white p-2 text-center text-[10px] font-bold mb-2">
-                                        DEBUG MODE: BUTTONS ARE BELOW
-                                    </div>
-                                    <div className="flex gap-2 mb-4">
-                                        <button
-                                            onClick={() => startEditing(item)}
-                                            className="flex-1 bg-yellow-300 text-black border-2 border-black p-2 font-bold hover:bg-yellow-500"
-                                        >
-                                            ✎ NOTES
-                                        </button>
+                                    {/* DELETE BUTTON: Centered Icon, Larger Size */}
+                                    <div className="absolute top-0 right-0 p-2 z-10">
                                         <button
                                             onClick={() =>
                                                 handleDelete(item.id)
                                             }
-                                            className="flex-1 bg-red-500 text-white border-2 border-black p-2 font-bold hover:bg-red-700"
+                                            className="bg-red-600 text-white w-8 h-8 flex items-center justify-center text-md font-bold font-pixel border-2 border-black hover:bg-red-800 transition-colors shadow-sm"
+                                            title="Discard Recipe"
                                         >
-                                            🗑 DISCARD
+                                            🗑️
                                         </button>
                                     </div>
-                                    {/* ==================================== */}
 
                                     <div className="flex gap-4">
                                         <div className="border-2 border-magical-pink p-1 bg-white shrink-0 h-20 w-20">
@@ -150,51 +163,44 @@ export default function Dashboard({ auth, myRecipes }) {
                                             />
                                         </div>
                                         <div className="flex flex-col w-full">
-                                            <h3 className="font-pixel text-[10px] text-magical-dark leading-snug mb-2">
-                                                {item.title}
-                                            </h3>
-                                            {editingId === item.id ? (
-                                                <div className="flex flex-col gap-2">
-                                                    <input
-                                                        type="text"
-                                                        className="text-[10px] p-1 border-2 border-magical-pink w-full"
-                                                        value={noteText}
-                                                        onChange={(e) =>
-                                                            setNoteText(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        autoFocus
-                                                    />
-                                                    <div className="flex gap-1">
-                                                        <button
-                                                            onClick={() =>
-                                                                saveNote(
-                                                                    item.id
-                                                                )
-                                                            }
-                                                            className="bg-green-400 text-white text-[8px] px-2 py-1 font-pixel border border-black"
-                                                        >
-                                                            OK
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                setEditingId(
-                                                                    null
-                                                                )
-                                                            }
-                                                            className="bg-gray-400 text-white text-[8px] px-2 py-1 font-pixel border border-black"
-                                                        >
-                                                            X
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <p className="text-[10px] text-gray-400 italic bg-white p-1 border border-gray-200 rounded h-full">
-                                                    {item.notes ||
-                                                        "No notes yet..."}
+                                            <Link
+                                                href={window.route(
+                                                    "recipes.show",
+                                                    item.id
+                                                )} // <-- Points to the new detail page
+                                                className="hover:text-magical-pink transition-colors inline-block" // Add hover effect
+                                            >
+                                                <h3 className="font-pixel text-[10px] text-magical-dark leading-snug mb-2 pr-10">
+                                                    {item.title}
+                                                </h3>
+                                            </Link>
+
+                                            <Link
+                                                href={window.route(
+                                                    "recipes.edit",
+                                                    item.id
+                                                )}
+                                                className="bg-magical-dark text-white font-pixel text-[8px] px-2 py-1 border-2 border-magical-pink shadow-pixel-sm hover:bg-magical-pink hover:text-white transition-colors mt-1 inline-block text-center"
+                                                title="Edit Recipe Details"
+                                            >
+                                                ⚔️ EDIT RECIPE DETAILS
+                                            </Link>
+
+                                            {/* DATE TIMESTAMPS (Orange Box fix) */}
+                                            <div className="mt-2 pt-2 border-t border-gray-200 text-[8px] text-gray-500 font-sans">
+                                                <p>
+                                                    Created:
+                                                    {formatDate(
+                                                        item.created_at
+                                                    )}
                                                 </p>
-                                            )}
+                                                <p>
+                                                    Updated:{" "}
+                                                    {formatDate(
+                                                        item.updated_at
+                                                    )}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

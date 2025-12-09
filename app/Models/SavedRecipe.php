@@ -10,13 +10,13 @@ class SavedRecipe extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'api_id',
+        'user_id', // 🎯 FIX 2: Added to the fillable array
         'title',
         'image',
         'ingredients',
         'instructions',
-        'notes'
+        'api_id',
+
     ];
 
     public function user()

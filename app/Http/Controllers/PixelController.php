@@ -7,22 +7,23 @@ use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use App\Models\SavedRecipe;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache; // <--- ADDED: Caching library
+use Illuminate\Support\Facades\Cache; // Critical for API Caching
 
 class PixelController extends Controller
 {
     // --- READ (Public API) ---
     public function index()
     {
-        $cacheKey = 'mealdb_desserts'; // Unique key for this data
+        $cacheKey = 'mealdb_desserts';
 
-        // Use Cache::remember to store data for 24 hours (86400 seconds)
+        // Uses Cache::remember to store data for 24 hours (86400 seconds)
+        // If the cache exists, it returns the cached data instantly.
         $recipes = Cache::remember($cacheKey, 86400, function () {
             try {
-                // Fetch Desserts from API
+                // Fetch Desserts from TheMealDB API
                 $response = Http::timeout(3)->get('https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert');
 
-                // Check for success and return the meals, or an empty array
+                // Check for successful API response
                 $meals = $response->successful() && $response->json('meals')
                     ? $response->json('meals')
                     : [];
@@ -30,12 +31,13 @@ class PixelController extends Controller
                 // Return only the first 8 for display as "Fresh Drops"
                 return array_slice($meals, 0, 8);
             } catch (\Exception $e) {
-                // Return empty array on connection failure
+                // Return empty array on connection failure for graceful error handling
                 return [];
             }
         });
 
         return Inertia::render('Welcome', [
+            // Passes the API data (cached or fresh) to the Welcome page
             'recipes' => $recipes,
         ]);
     }
@@ -43,7 +45,7 @@ class PixelController extends Controller
     // --- READ (Private Dashboard) ---
     public function dashboard()
     {
-        // Get recipes belonging to the logged-in user
+        // Fetches all recipes belonging to the logged-in user (Custom CRUD: Read)
         $myRecipes = SavedRecipe::where('user_id', Auth::id())->latest()->get();
 
         return Inertia::render('Dashboard', [
@@ -51,70 +53,101 @@ class PixelController extends Controller
         ]);
     }
 
-    // --- CREATE (Save from API) ---
     public function store(Request $request)
     {
-        $exists = SavedRecipe::where('user_id', Auth::id())
-            ->where('api_id', $request->api_id)
-            ->exists();
-
-        if (!$exists) {
-            SavedRecipe::create([
-                'user_id' => Auth::id(),
-                'api_id' => $request->api_id,
-                'title' => $request->title,
-                'image' => $request->image,
-            ]);
-        }
-
-        return redirect()->back();
-    }
-
-    // --- CREATE (Custom Recipe Form) ---
-    public function create()
-    {
-        return Inertia::render('Recipes/Create');
-    }
-
-    // --- CREATE (Save Custom Recipe) ---
-    public function storeCustom(Request $request)
-    {
-        $request->validate([
-            'title' => 'required',
-            'image' => 'required', // We accept a URL string
+        // 1. Validation of incoming user data
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'required|url|max:512',
+            'ingredients' => 'nullable|string',
+            'instructions' => 'nullable|string',
         ]);
 
-        SavedRecipe::create([
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'image' => $request->image,
-            'ingredients' => $request->ingredients,
-            'instructions' => $request->instructions,
-            'api_id' => null, // Null means it's a custom recipe
-        ]);
+        // 🎯 FIX 1: Attach the authenticated user's ID before creation
+        $validated['user_id'] = Auth::id();
 
+        // 2. Create the new recipe entry
+        SavedRecipe::create($validated);
+
+        // 3. Redirect back to the dashboard
         return redirect()->route('dashboard');
     }
 
-    // --- UPDATE (Edit Notes) ---
-    public function update(Request $request, $id)
+    // --- CREATE (Custom Recipe Form View) ---
+    public function create()
     {
-        $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
-
-        $recipe->update([
-            'notes' => $request->notes
-        ]);
-
-        return redirect()->back();
+        // Change 'Recipes/Create' to just 'Create'
+        return Inertia::render('Create');
     }
 
-    // --- DELETE (Discard Item) ---
-    public function destroy($id)
+    // --- CREATE (Save Custom Recipe to DB, used by Create.jsx form) ---
+    public function storeCustom(Request $request)
     {
-        $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
+        // 1. Validation (Highly Recommended, though not causing this error)
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'required|url', // Assuming you require an image URL
+            'ingredients' => 'required|string',
+            'instructions' => 'required|string',
+        ]);
+
+        // 2. Create the Recipe, ensuring the user_id is passed
+        SavedRecipe::create([
+            // 🎯 FIX: Add the user_id from the authenticated user 🎯
+            'user_id' => auth()->id(), // Gets the ID of the currently logged-in user
+
+            // Pass the validated data
+            'title' => $validated['title'],
+            'image' => $validated['image'],
+            'ingredients' => $validated['ingredients'],
+            'instructions' => $validated['instructions'],
+            // 'api_id' is null here since it's a custom recipe
+            'api_id' => null,
+        ]);
+
+        // 3. Redirect back to the Dashboard
+        return redirect()->route('dashboard');
+    }
+
+    // --- UPDATE (Edit Notes, used on the Dashboard) ---
+    public function update(Request $request, string $id)
+    {
+        // 1. Find the recipe and authorize
+        $recipe = SavedRecipe::findOrFail($id);
+
+        // Ensure the current user owns this recipe
+        if ($recipe->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 2. Validate the incoming data (just the note)
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        // 3. Update the notes field
+        $recipe->update($validated);
+
+        // 4. Redirect and optionally flash a message
+        return redirect()->route('dashboard')->with('success', 'Note updated successfully!');
+    }
+
+    // --- DELETE (Discard Item, used on the Dashboard) ---
+    public function destroy(string $id)
+    {
+        // 1. Find the recipe and authorize
+        $recipe = SavedRecipe::findOrFail($id);
+
+        // Ensure the current user owns this recipe
+        if ($recipe->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 2. Delete the record
         $recipe->delete();
 
-        return redirect()->back();
+        // 3. Redirect and flash a success message (Crucial for the notification!)
+        return redirect()->route('dashboard')->with('success', 'Recipe successfully discarded!');
     }
 
     // --- READ (About Page) ---
