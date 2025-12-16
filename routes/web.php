@@ -55,4 +55,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');
 });
 
+Route::get('/community/feed', [RecipeController::class, 'index'])->name('community.feed');
 require __DIR__ . '/auth.php';

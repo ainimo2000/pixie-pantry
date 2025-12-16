@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
-import { Button } from "@headlessui/react";
 
 export default function Dashboard({ auth, myRecipes }) {
     const { post } = useForm();
@@ -116,7 +115,7 @@ export default function Dashboard({ auth, myRecipes }) {
 
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Link
-                                href="/"
+                                href={window.route("community.feed")}
                                 className="bg-magical-pink text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-dark shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                             >
                                 + FIND MORE LOOT

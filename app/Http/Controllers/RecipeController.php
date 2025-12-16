@@ -71,4 +71,16 @@ class RecipeController extends Controller
             'recipe' => $recipe,
         ]);
     }
+
+    public function index()
+    {
+        $communityRecipes = \App\Models\SavedRecipe::with('user')
+            ->latest()
+            ->get();
+
+        // VERIFY THE PATH STRING BELOW MATCHES YOUR NEW FILE LOCATION
+        return Inertia::render('Community/Feed', [
+            'recipes' => $communityRecipes,
+        ]);
+    }
 }
