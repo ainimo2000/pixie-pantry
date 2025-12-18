@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\SavedRecipe;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+// CRITICAL: Ensure this line is present to use Auth::id()
 use Illuminate\Support\Facades\Auth;
 
 class RecipeController extends Controller
 {
     public function edit(SavedRecipe $recipe)
     {
-        if (auth()->id() !== $recipe->user_id) {
+        // FIX: Using Auth::id() to satisfy the IDE (Intelephense)
+        if (Auth::id() !== $recipe->user_id) { // Use Auth::id()
             abort(403, 'Unauthorized action.');
         }
-
         return Inertia::render('Recipes/Edit', [
             'recipe' => $recipe,
         ]);
@@ -23,21 +24,18 @@ class RecipeController extends Controller
     // Method to handle the PUT request (form submission) to update the recipe
     public function update(Request $request, SavedRecipe $recipe)
     {
-        // 1. Authorization Check
-        if (auth()->id() !== $recipe->user_id) {
+        // 1. Authorization Check (Owner Only) - Using Auth::id()
+        if (Auth::id() !== $recipe->user_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        // 2. Data Validation
+        // 2. Data Validation (Validation removed for brevity, assuming you have it)
+
         $validatedData = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            // Assuming your frontend uses 'image_url' for the image input name
-            'image_url' => ['required', 'url', 'max:2048'],
+            'image' => ['required', 'string', 'max:2048'],
             'ingredients' => ['required', 'string'],
             'instructions' => ['required', 'string'],
-            // The 'notes' field is needed for the inline note edit feature,
-            // but is optional for the main recipe form. We include it here
-            // because your Dashboard.jsx's `saveNote` function uses this route.
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -51,7 +49,8 @@ class RecipeController extends Controller
     // Example of a minimal destroy method if you use RecipeController for it:
     public function destroy(SavedRecipe $recipe)
     {
-        if (auth()->id() !== $recipe->user_id) {
+        // Owner Only - Using Auth::id()
+        if (Auth::id() !== $recipe->user_id) {
             abort(403);
         }
         $recipe->delete();
@@ -60,13 +59,9 @@ class RecipeController extends Controller
 
     public function show(SavedRecipe $recipe)
     {
-        // 1. Authorization Check (Optional, but good practice)
-        // If you only want users to view their own recipes:
-        if (auth()->id() !== $recipe->user_id) {
-            abort(403, 'Unauthorized action.');
-        }
+        // 🚨 CRITICAL FIX: The authorization check is REMOVED to allow community viewing.
+        // This stops the 403 error when clicking other users' recipes.
 
-        // 2. Render the new Detail component
         return Inertia::render('Recipes/Show', [
             'recipe' => $recipe,
         ]);
@@ -78,7 +73,6 @@ class RecipeController extends Controller
             ->latest()
             ->get();
 
-        // VERIFY THE PATH STRING BELOW MATCHES YOUR NEW FILE LOCATION
         return Inertia::render('Community/Feed', [
             'recipes' => $communityRecipes,
         ]);

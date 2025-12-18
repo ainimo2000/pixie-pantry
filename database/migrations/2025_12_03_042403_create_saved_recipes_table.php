@@ -14,24 +14,26 @@ return new class extends Migration
         Schema::create('saved_recipes', function (Blueprint $table) {
             $table->id();
 
-            // REQUIRED: Links the recipe to the user (Fixes the SQL error)
+            // User relationship
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // Stores the recipe title
+            // Recipe basic info
             $table->string('title');
-
-            // Stores the Image URL (This is how you "add images")
-            $table->string('image');
-
-            // Fields for Custom Recipes (Allow null for API-saved items)
+            $table->string('image')->nullable();
             $table->text('ingredients')->nullable();
             $table->text('instructions')->nullable();
-            $table->text('notes')->nullable();
 
-            // Field for API-saved recipes (Allow null for custom recipes)
+            // API tracking
             $table->string('api_id')->nullable();
 
+            // User's personal data
+            $table->text('notes')->nullable(); // ← THIS IS NEW!
+
             $table->timestamps();
+
+            // Indexes
+            $table->index('user_id');
+            $table->index('created_at');
         });
     }
 
