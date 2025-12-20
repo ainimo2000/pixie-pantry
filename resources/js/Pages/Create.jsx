@@ -82,17 +82,6 @@ export default function Create({ auth }) {
                                         {errors.image}
                                     </div>
                                 )}
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Pro tip: Use{" "}
-                                    <a
-                                        href="https://unsplash.com"
-                                        target="_blank"
-                                        className="text-magical-pink underline"
-                                    >
-                                        Unsplash
-                                    </a>{" "}
-                                    for free food images!
-                                </p>
                             </div>
 
                             {/* INGREDIENTS */}
