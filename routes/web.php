@@ -1,6 +1,6 @@
 <?php
 // FILE: routes/web.php
-// REPLACE your current web.php with this CLEAN version
+// CORRECTED VERSION - Line 18 fixed!
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PixelController;
@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PixelController::class, 'index'])->name('home');
 Route::get('/about', [PixelController::class, 'about'])->name('about');
 
-// Community Feed - Public or Auth (your choice)
-Route::get('/community/feed', [RecipeController::class, 'index'])->name('community.feed');
+// Community Feed - ✅ FIXED: Changed 'index' to 'feed'
+Route::get('/community/feed', [RecipeController::class, 'feed'])->name('community.feed');
 
 /*
 |--------------------------------------------------------------------------
@@ -31,23 +31,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [PixelController::class, 'dashboard'])->name('dashboard');
 
     // ===== CREATE RECIPES =====
-    // Show create form
     Route::get('/recipes/create', [PixelController::class, 'create'])->name('recipes.create');
-
-    // Store API recipe (from Welcome page "Save" button)
     Route::post('/recipes', [PixelController::class, 'store'])->name('recipes.store');
-
-    // Store custom recipe (from Create form)
     Route::post('/recipes/custom', [PixelController::class, 'storeCustom'])->name('recipes.store_custom');
 
     // ===== VIEW RECIPE =====
     Route::get('/recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');
 
     // ===== EDIT RECIPE =====
-    // Show edit form
     Route::get('/recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
-
-    // Update recipe
     Route::put('/recipes/{recipe}', [RecipeController::class, 'update'])->name('recipes.update');
 
     // ===== DELETE RECIPE =====
@@ -57,12 +49,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Authentication Routes (Laravel Breeze)
-|--------------------------------------------------------------------------
-*/
+    // ===== SEARCH ROUTES =====
+    Route::get('/search', [PixelController::class, 'search'])->name('search');
+    Route::get('/dashboard/search', [PixelController::class, 'searchMyRecipes'])->name('dashboard.search');
+    Route::get('/community/search', [RecipeController::class, 'searchCommunity'])->name('community.search');
+});
 
 require __DIR__ . '/auth.php';

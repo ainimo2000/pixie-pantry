@@ -4,77 +4,164 @@ namespace App\Http\Controllers;
 
 use App\Models\SavedRecipe;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-// CRITICAL: Ensure this line is present to use Auth::id()
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
 
 class RecipeController extends Controller
 {
-    public function edit(SavedRecipe $recipe)
+    public function feed()
     {
-        // FIX: Using Auth::id() to satisfy the IDE (Intelephense)
-        if (Auth::id() !== $recipe->user_id) { // Use Auth::id()
-            abort(403, 'Unauthorized action.');
-        }
-        return Inertia::render('Recipes/Edit', [
-            'recipe' => $recipe,
+        // Get user-created recipes
+        $userRecipes = SavedRecipe::with('user')
+            ->latest()
+            ->get()
+            ->map(function ($recipe) {
+                return [
+                    'id' => $recipe->id,
+                    'title' => $recipe->title,
+                    'image' => $recipe->image,
+                    'user' => [
+                        'name' => $recipe->user->name ?? 'Unknown'
+                    ],
+                    'created_at' => $recipe->created_at,
+                    'source' => 'user',
+                ];
+            });
+
+        // Get API recipes (cached)
+        $apiRecipes = Cache::remember('community_mealdb_feed', 3600, function () {
+            try {
+                $response = Http::timeout(5)->get('https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert');
+
+                if ($response->successful() && $response->json('meals')) {
+                    return collect($response->json('meals'))
+                        ->take(20)
+                        ->map(function ($meal) {
+                            return [
+                                'id' => 'api_' . $meal['idMeal'],
+                                'title' => $meal['strMeal'],
+                                'image' => $meal['strMealThumb'],
+                                'user' => ['name' => 'TheMealDB'],
+                                'created_at' => now(),
+                                'source' => 'api',
+                                'api_id' => $meal['idMeal'],
+                            ];
+                        })
+                        ->toArray();
+                }
+                return [];
+            } catch (\Exception $e) {
+                \Log::error('MealDB API Error: ' . $e->getMessage());
+                return [];
+            }
+        });
+
+        // Merge and shuffle
+        $allRecipes = collect($userRecipes)->concat($apiRecipes)->shuffle();
+
+        return Inertia::render('Community/Feed', [
+            'recipes' => $allRecipes,
         ]);
     }
 
-    // Method to handle the PUT request (form submission) to update the recipe
-    public function update(Request $request, SavedRecipe $recipe)
+
+    public function searchCommunity(Request $request)
     {
-        // 1. Authorization Check (Owner Only) - Using Auth::id()
-        if (Auth::id() !== $recipe->user_id) {
-            abort(403, 'Unauthorized action.');
-        }
+        $query = $request->input('q', '');
 
-        // 2. Data Validation (Validation removed for brevity, assuming you have it)
+        // Search only user recipes (not API)
+        $recipes = SavedRecipe::with('user')
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'LIKE', "%{$query}%")
+                    ->orWhere('ingredients', 'LIKE', "%{$query}%");
+            })
+            ->latest()
+            ->get()
+            ->map(function ($recipe) {
+                return [
+                    'id' => $recipe->id,
+                    'title' => $recipe->title,
+                    'image' => $recipe->image,
+                    'user' => [
+                        'name' => $recipe->user->name ?? 'Unknown'
+                    ],
+                    'created_at' => $recipe->created_at,
+                    'source' => 'user',
+                ];
+            });
 
-        $validatedData = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'image' => ['required', 'string', 'max:2048'],
-            'ingredients' => ['required', 'string'],
-            'instructions' => ['required', 'string'],
-            'notes' => ['nullable', 'string', 'max:500'],
+        return Inertia::render('Community/Feed', [
+            'recipes' => $recipes,
+            'searchQuery' => $query,
         ]);
-
-        // 3. Update the model attributes
-        $recipe->update($validatedData);
-
-        // 4. Redirect with a success message
-        return redirect()->route('dashboard')->with('success', 'Recipe updated successfully!');
     }
 
-    // Example of a minimal destroy method if you use RecipeController for it:
-    public function destroy(SavedRecipe $recipe)
-    {
-        // Owner Only - Using Auth::id()
-        if (Auth::id() !== $recipe->user_id) {
-            abort(403);
-        }
-        $recipe->delete();
-        return redirect()->route('dashboard')->with('success', 'Recipe discarded.');
-    }
-
+    /**
+     * Show recipe details
+     */
     public function show(SavedRecipe $recipe)
     {
-        // 🚨 CRITICAL FIX: The authorization check is REMOVED to allow community viewing.
-        // This stops the 403 error when clicking other users' recipes.
+        $recipe->load('user');
 
         return Inertia::render('Recipes/Show', [
             'recipe' => $recipe,
         ]);
     }
 
-    public function index()
+    /**
+     * Show edit form
+     */
+    public function edit(SavedRecipe $recipe)
     {
-        $communityRecipes = \App\Models\SavedRecipe::with('user')
-            ->latest()
-            ->get();
+        // Ensure user owns the recipe
+        if ($recipe->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
 
-        return Inertia::render('Community/Feed', [
-            'recipes' => $communityRecipes,
+        return Inertia::render('Recipes/Edit', [
+            'recipe' => $recipe,
         ]);
+    }
+
+    /**
+     * Update recipe
+     */
+    public function update(Request $request, SavedRecipe $recipe)
+    {
+        // Ensure user owns the recipe
+        if ($recipe->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'required|url',
+            'ingredients' => 'required|string',
+            'instructions' => 'required|string',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $recipe->update($validated);
+
+        return redirect()->route('recipes.show', $recipe->id)
+            ->with('success', 'Recipe updated successfully!');
+    }
+
+    /**
+     * Delete recipe
+     */
+    public function destroy(SavedRecipe $recipe)
+    {
+        // Ensure user owns the recipe
+        if ($recipe->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $recipe->delete();
+
+        return redirect()->route('community.feed')
+            ->with('success', 'Recipe deleted successfully!');
     }
 }

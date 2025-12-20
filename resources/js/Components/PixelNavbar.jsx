@@ -1,44 +1,85 @@
-// FILE: resources/js/Components/PixelNavbar.jsx
-// MODERN STYLED VERSION
-
 import { Link, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import SearchBar from "@/Components/SearchBar";
 
 export default function PixelNavbar() {
     const { props } = usePage();
     const user = props.auth?.user;
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    // Track scroll position
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 50);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     return (
-        <nav className="bg-magical-pink/95 backdrop-blur-sm border-b-2 border-magical-dark shadow-lg">
-            <div className="max-w-7xl mx-auto px-6 py-4">
-                <div className="flex justify-between items-center">
+        <motion.nav
+            className={`transition-all duration-300 ${
+                scrolled ? "bg-white shadow-lg py-2" : "bg-magical-pink py-3"
+            }`}
+        >
+            <div className="max-w-7xl mx-auto px-6">
+                <div className="flex justify-between items-center gap-4">
                     {/* LOGO */}
                     <Link
                         href={route("home")}
-                        className="flex items-center gap-3 hover:scale-105 transition-transform"
+                        className="flex items-center gap-3"
                     >
-                        <div className="w-10 h-10 bg-white border-2 border-magical-dark flex items-center justify-center text-2xl shadow-md">
+                        <motion.div
+                            className={`w-10 h-10 border-2 flex items-center justify-center text-2xl transition-colors ${
+                                scrolled
+                                    ? "border-magical-dark bg-magical-pink"
+                                    : "border-white bg-white"
+                            }`}
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                        >
                             🧁
-                        </div>
-                        <span className="font-pixel text-white text-base drop-shadow-md hidden sm:inline">
+                        </motion.div>
+                        <span
+                            className={`font-pixel text-base transition-colors ${
+                                scrolled ? "text-magical-dark" : "text-white"
+                            }`}
+                        >
                             PIXIE'S PANTRY
                         </span>
                     </Link>
 
-                    {/* DESKTOP MENU */}
+                    {/* SEARCH BAR - DESKTOP */}
+                    {user && (
+                        <div className="hidden md:block flex-1 max-w-md">
+                            <SearchBar
+                                placeholder="Search recipes..."
+                                route={route("search")}
+                            />
+                        </div>
+                    )}
+
+                    {/* NAVIGATION LINKS */}
                     <div className="hidden md:flex items-center gap-2 font-pixel text-[10px]">
                         <Link
                             href={route("home")}
-                            className="text-white px-4 py-2 hover:bg-white/20 rounded transition-all"
+                            className={`px-4 py-2 rounded transition-all ${
+                                scrolled
+                                    ? "text-magical-dark hover:bg-magical-pink/20"
+                                    : "text-white hover:bg-white/20"
+                            }`}
                         >
                             HOME
                         </Link>
-
                         <Link
                             href={route("community.feed")}
-                            className="text-white px-4 py-2 hover:bg-white/20 rounded transition-all"
+                            className={`px-4 py-2 rounded transition-all ${
+                                scrolled
+                                    ? "text-magical-dark hover:bg-magical-pink/20"
+                                    : "text-white hover:bg-white/20"
+                            }`}
                         >
                             COMMUNITY
                         </Link>
@@ -47,14 +88,21 @@ export default function PixelNavbar() {
                             <>
                                 <Link
                                     href={route("dashboard")}
-                                    className="text-white px-4 py-2 hover:bg-white/20 rounded transition-all"
+                                    className={`px-4 py-2 rounded transition-all ${
+                                        scrolled
+                                            ? "text-magical-dark hover:bg-magical-pink/20"
+                                            : "text-white hover:bg-white/20"
+                                    }`}
                                 >
                                     MY KITCHEN
                                 </Link>
-
                                 <Link
                                     href={route("recipes.create")}
-                                    className="bg-white text-magical-pink px-4 py-2 border-2 border-magical-dark hover:bg-magical-dark hover:text-white rounded transition-all"
+                                    className={`px-4 py-2 border-2 rounded transition-all ${
+                                        scrolled
+                                            ? "bg-magical-pink text-white border-magical-dark hover:bg-magical-dark"
+                                            : "bg-white text-magical-pink border-white hover:bg-magical-dark hover:text-white"
+                                    }`}
                                 >
                                     + CREATE
                                 </Link>
@@ -67,7 +115,11 @@ export default function PixelNavbar() {
                                                 !userDropdownOpen
                                             )
                                         }
-                                        className="text-white px-4 py-2 hover:bg-white/20 rounded transition-all flex items-center gap-1"
+                                        className={`px-4 py-2 hover:bg-white/20 rounded flex items-center gap-1 ${
+                                            scrolled
+                                                ? "text-magical-dark"
+                                                : "text-white"
+                                        }`}
                                     >
                                         👤 {user.name}
                                         <svg
@@ -103,13 +155,21 @@ export default function PixelNavbar() {
                             <>
                                 <Link
                                     href={route("login")}
-                                    className="text-white px-4 py-2 hover:bg-white/20 rounded transition-all"
+                                    className={`px-4 py-2 ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     LOGIN
                                 </Link>
                                 <Link
                                     href={route("register")}
-                                    className="bg-white text-magical-pink px-4 py-2 border-2 border-magical-dark hover:bg-magical-dark hover:text-white rounded transition-all"
+                                    className={`px-4 py-2 border-2 rounded ${
+                                        scrolled
+                                            ? "bg-magical-pink text-white border-magical-dark"
+                                            : "bg-white text-magical-pink border-white"
+                                    }`}
                                 >
                                     SIGN UP
                                 </Link>
@@ -117,27 +177,43 @@ export default function PixelNavbar() {
                         )}
                     </div>
 
-                    {/* MOBILE TOGGLE */}
+                    {/* Mobile toggle */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden text-white text-2xl"
+                        className={`md:hidden text-2xl ${
+                            scrolled ? "text-magical-dark" : "text-white"
+                        }`}
                     >
                         {mobileMenuOpen ? "✕" : "☰"}
                     </button>
                 </div>
 
-                {/* MOBILE MENU */}
+                {/* SEARCH BAR - MOBILE */}
+                {user && (
+                    <div className="mt-3 md:hidden">
+                        <SearchBar
+                            placeholder="Search..."
+                            route={route("search")}
+                        />
+                    </div>
+                )}
+
+                {/* Mobile menu */}
                 {mobileMenuOpen && (
                     <div className="md:hidden mt-4 space-y-2 font-pixel text-[10px]">
                         <Link
                             href={route("home")}
-                            className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                            className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                scrolled ? "text-magical-dark" : "text-white"
+                            }`}
                         >
                             HOME
                         </Link>
                         <Link
                             href={route("community.feed")}
-                            className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                            className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                scrolled ? "text-magical-dark" : "text-white"
+                            }`}
                         >
                             COMMUNITY
                         </Link>
@@ -145,19 +221,31 @@ export default function PixelNavbar() {
                             <>
                                 <Link
                                     href={route("dashboard")}
-                                    className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                                    className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     MY KITCHEN
                                 </Link>
                                 <Link
                                     href={route("recipes.create")}
-                                    className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                                    className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     + CREATE
                                 </Link>
                                 <Link
                                     href={route("profile.edit")}
-                                    className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                                    className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     ⚙️ PROFILE
                                 </Link>
@@ -165,7 +253,11 @@ export default function PixelNavbar() {
                                     href={route("logout")}
                                     method="post"
                                     as="button"
-                                    className="block w-full text-left text-white px-4 py-2 hover:bg-red-600 rounded"
+                                    className={`block w-full text-left px-4 py-2 hover:bg-red-600 rounded ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     🚪 LOGOUT
                                 </Link>
@@ -174,13 +266,21 @@ export default function PixelNavbar() {
                             <>
                                 <Link
                                     href={route("login")}
-                                    className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                                    className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     LOGIN
                                 </Link>
                                 <Link
                                     href={route("register")}
-                                    className="block text-white px-4 py-2 hover:bg-white/20 rounded"
+                                    className={`block px-4 py-2 hover:bg-white/20 rounded ${
+                                        scrolled
+                                            ? "text-magical-dark"
+                                            : "text-white"
+                                    }`}
                                 >
                                     SIGN UP
                                 </Link>
@@ -189,6 +289,6 @@ export default function PixelNavbar() {
                     </div>
                 )}
             </div>
-        </nav>
+        </motion.nav>
     );
 }

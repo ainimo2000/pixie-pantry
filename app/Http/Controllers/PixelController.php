@@ -94,7 +94,7 @@ class PixelController extends Controller
         // 2. Create the Recipe, ensuring the user_id is passed
         SavedRecipe::create([
             // 🎯 FIX: Add the user_id from the authenticated user 🎯
-            'user_id' => auth()->id(), // Gets the ID of the currently logged-in user
+            'user_id' => Auth::id(), // Gets the ID of the currently logged-in user
 
             // Pass the validated data
             'title' => $validated['title'],
@@ -116,7 +116,7 @@ class PixelController extends Controller
         $recipe = SavedRecipe::findOrFail($id);
 
         // Ensure the current user owns this recipe
-        if ($recipe->user_id !== auth()->id()) {
+        if ($recipe->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -139,7 +139,7 @@ class PixelController extends Controller
         $recipe = SavedRecipe::findOrFail($id);
 
         // Ensure the current user owns this recipe
-        if ($recipe->user_id !== auth()->id()) {
+        if ($recipe->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -148,6 +148,60 @@ class PixelController extends Controller
 
         // 3. Redirect and flash a success message (Crucial for the notification!)
         return redirect()->route('dashboard')->with('success', 'Recipe successfully discarded!');
+    }
+
+    /**
+     * Search user's saved recipes
+     */
+    public function searchMyRecipes(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        $recipes = SavedRecipe::where('user_id', Auth::id())
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'LIKE', "%{$query}%")
+                    ->orWhere('ingredients', 'LIKE', "%{$query}%");
+            })
+            ->latest()
+            ->get();
+
+        return Inertia::render('Dashboard', [
+            'myRecipes' => $recipes,
+            'searchQuery' => $query,
+        ]);
+    }
+
+    /**
+     * Global search (all recipes user can access)
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        // Search user's recipes
+        $myRecipes = SavedRecipe::where('user_id', Auth::id())
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'LIKE', "%{$query}%")
+                    ->orWhere('ingredients', 'LIKE', "%{$query}%");
+            })
+            ->latest()
+            ->get();
+
+        // Search community recipes
+        $communityRecipes = SavedRecipe::with('user')
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'LIKE', "%{$query}%")
+                    ->orWhere('ingredients', 'LIKE', "%{$query}%");
+            })
+            ->latest()
+            ->take(20)
+            ->get();
+
+        return Inertia::render('SearchResults', [
+            'myRecipes' => $myRecipes,
+            'communityRecipes' => $communityRecipes,
+            'searchQuery' => $query,
+        ]);
     }
 
     // --- READ (About Page) ---

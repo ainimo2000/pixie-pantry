@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import PixelNavbar from "@/Components/PixelNavbar";
+import SearchBar from "@/Components/SearchBar";
 
-export default function Dashboard({ auth, myRecipes }) {
+export default function Dashboard({ auth, myRecipes = [], searchQuery = "" }) {
     const { post } = useForm();
     const [editingId, setEditingId] = useState(null);
     const [noteText, setNoteText] = useState("");
 
-    // Helper function to format the date
     const formatDate = (timestamp) => {
         return new Date(timestamp).toLocaleDateString("en-US", {
             year: "numeric",
@@ -26,34 +26,6 @@ export default function Dashboard({ auth, myRecipes }) {
         }
     };
 
-    const startEditing = (recipe) => {
-        setEditingId(recipe.id);
-        setNoteText(recipe.notes || "");
-    };
-
-    const saveNote = (id) => {
-        router.put(
-            route("recipes.update", id),
-            { notes: noteText },
-            {
-                onSuccess: () => setEditingId(null),
-                onError: (errors) => {
-                    console.error(errors);
-                    alert(
-                        "Error saving entry. Please ensure the note is not too long."
-                    );
-                },
-            }
-        );
-    };
-
-    const handleKeyDown = (e, id) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            saveNote(id);
-        }
-    };
-
     return (
         <>
             <Head title="My Kitchen" />
@@ -66,14 +38,14 @@ export default function Dashboard({ auth, myRecipes }) {
                             "radial-gradient(#8B008B 2px, transparent 2px)",
                         backgroundSize: "20px 20px",
                     }}
-                ></div>
+                />
 
-                {/* NAVIGATION - Now using PixelNavbar */}
+                {/* NAVIGATION */}
                 <PixelNavbar />
 
                 <main className="max-w-6xl mx-auto px-6 py-10 relative z-10">
                     {/* INVENTORY STATUS */}
-                    <div className="bg-white border-4 border-magical-border shadow-pixel p-6 mb-12 rounded-lg">
+                    <div className="bg-white border-4 border-magical-border shadow-pixel p-6 mb-8 rounded-lg">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div>
                                 <h2 className="font-pixel text-lg md:text-2xl text-magical-dark mb-2">
@@ -93,7 +65,7 @@ export default function Dashboard({ auth, myRecipes }) {
                                     href={route("community.feed")}
                                     className="bg-magical-pink text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-dark shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-center"
                                 >
-                                    🔍 EXPLORE COMMUNITY
+                                    🌍 EXPLORE COMMUNITY
                                 </Link>
 
                                 <Link
@@ -105,6 +77,23 @@ export default function Dashboard({ auth, myRecipes }) {
                             </div>
                         </div>
                     </div>
+
+                    {/* SEARCH BAR */}
+                    <div className="mb-6">
+                        <SearchBar
+                            placeholder="Search my recipes (title or ingredients)..."
+                            route={route("dashboard.search")}
+                            initialQuery={searchQuery}
+                        />
+                    </div>
+
+                    {/* SEARCH RESULTS COUNT */}
+                    {searchQuery && (
+                        <p className="text-sm text-gray-600 mb-4">
+                            Found {myRecipes.length} recipe(s) for "
+                            {searchQuery}"
+                        </p>
+                    )}
 
                     {/* RECIPES GRID */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -141,7 +130,7 @@ export default function Dashboard({ auth, myRecipes }) {
                                         </div>
 
                                         <div className="flex flex-col w-full">
-                                            {/* Recipe Title - Clickable */}
+                                            {/* Recipe Title */}
                                             <Link
                                                 href={route(
                                                     "recipes.show",
@@ -188,13 +177,21 @@ export default function Dashboard({ auth, myRecipes }) {
                         ) : (
                             <div className="col-span-3 text-center py-20 opacity-50">
                                 <p className="font-pixel text-xs text-magical-dark mb-4">
-                                    YOUR KITCHEN IS EMPTY
+                                    {searchQuery
+                                        ? `NO RECIPES FOUND FOR "${searchQuery}"`
+                                        : "YOUR KITCHEN IS EMPTY"}
                                 </p>
                                 <Link
-                                    href={route("home")}
+                                    href={
+                                        searchQuery
+                                            ? route("dashboard")
+                                            : route("home")
+                                    }
                                     className="inline-block bg-magical-pink text-white font-pixel text-[8px] px-6 py-3 border-2 border-magical-dark hover:bg-magical-dark transition-colors"
                                 >
-                                    START COLLECTING RECIPES
+                                    {searchQuery
+                                        ? "CLEAR SEARCH"
+                                        : "START COLLECTING RECIPES"}
                                 </Link>
                             </div>
                         )}
