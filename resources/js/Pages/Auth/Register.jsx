@@ -1,120 +1,208 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { useEffect } from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { motion } from "framer-motion";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
+        name: "",
+        email: "",
+        password: "",
+        password_confirmation: "",
     });
+
+    useEffect(() => {
+        return () => {
+            reset("password", "password_confirmation");
+        };
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
-
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
+        post(route("register"));
     };
 
     return (
-        <GuestLayout>
-            <Head title="Register" />
+        <>
+            <Head title="Sign Up" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
-
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.name} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            <div className="min-h-screen bg-gradient-to-br from-purple-600 via-magical-pink to-orange-400 flex items-center justify-center p-6 relative overflow-hidden">
+                {/* Floating food emojis */}
+                {["🧁", "🍰", "🍪", "🎂", "🍩", "🥧"].map((emoji, i) => (
+                    <motion.div
+                        key={i}
+                        className="absolute text-6xl opacity-10"
+                        style={{
+                            top: `${Math.random() * 100}%`,
+                            left: `${Math.random() * 100}%`,
+                        }}
+                        animate={{
+                            y: [0, -30, 0],
+                            rotate: [0, 10, -10, 0],
+                        }}
+                        transition={{
+                            duration: 5 + Math.random() * 3,
+                            repeat: Infinity,
+                            delay: Math.random() * 2,
+                        }}
                     >
-                        Already registered?
-                    </Link>
+                        {emoji}
+                    </motion.div>
+                ))}
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-full max-w-md relative z-10"
+                >
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <Link href="/" className="inline-block">
+                            <motion.div
+                                whileHover={{ scale: 1.1, rotate: -5 }}
+                                className="w-20 h-20 mx-auto bg-white border-4 border-magical-dark flex items-center justify-center text-5xl mb-4 shadow-xl"
+                            >
+                                🧁
+                            </motion.div>
+                        </Link>
+                        <h1 className="font-pixel text-4xl text-white drop-shadow-lg mb-2">
+                            JOIN THE ADVENTURE
+                        </h1>
+                        <p className="font-pixel text-sm text-white/90">
+                            CREATE YOUR KITCHEN ACCOUNT
+                        </p>
+                    </div>
+
+                    {/* Sign Up Form */}
+                    <div className="bg-white border-4 border-magical-dark shadow-2xl p-8">
+                        <form onSubmit={submit} className="space-y-5">
+                            {/* Name */}
+                            <div>
+                                <label className="font-pixel text-xs text-magical-dark block mb-2">
+                                    👤 CHEF NAME
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.name}
+                                    onChange={(e) =>
+                                        setData("name", e.target.value)
+                                    }
+                                    className="w-full px-4 py-3 border-2 border-magical-pink font-pixel text-xs focus:border-magical-dark focus:ring-0"
+                                    autoFocus
+                                    required
+                                />
+                                {errors.name && (
+                                    <p className="mt-2 text-xs text-red-600 font-pixel">
+                                        {errors.name}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="font-pixel text-xs text-magical-dark block mb-2">
+                                    📧 EMAIL ADDRESS
+                                </label>
+                                <input
+                                    type="email"
+                                    value={data.email}
+                                    onChange={(e) =>
+                                        setData("email", e.target.value)
+                                    }
+                                    className="w-full px-4 py-3 border-2 border-magical-pink font-pixel text-xs focus:border-magical-dark focus:ring-0"
+                                    required
+                                />
+                                {errors.email && (
+                                    <p className="mt-2 text-xs text-red-600 font-pixel">
+                                        {errors.email}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                                <label className="font-pixel text-xs text-magical-dark block mb-2">
+                                    🔒 PASSWORD
+                                </label>
+                                <input
+                                    type="password"
+                                    value={data.password}
+                                    onChange={(e) =>
+                                        setData("password", e.target.value)
+                                    }
+                                    className="w-full px-4 py-3 border-2 border-magical-pink font-pixel text-xs focus:border-magical-dark focus:ring-0"
+                                    required
+                                />
+                                {errors.password && (
+                                    <p className="mt-2 text-xs text-red-600 font-pixel">
+                                        {errors.password}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div>
+                                <label className="font-pixel text-xs text-magical-dark block mb-2">
+                                    🔒 CONFIRM PASSWORD
+                                </label>
+                                <input
+                                    type="password"
+                                    value={data.password_confirmation}
+                                    onChange={(e) =>
+                                        setData(
+                                            "password_confirmation",
+                                            e.target.value
+                                        )
+                                    }
+                                    className="w-full px-4 py-3 border-2 border-magical-pink font-pixel text-xs focus:border-magical-dark focus:ring-0"
+                                    required
+                                />
+                                {errors.password_confirmation && (
+                                    <p className="mt-2 text-xs text-red-600 font-pixel">
+                                        {errors.password_confirmation}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Submit Button */}
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                disabled={processing}
+                                className="w-full bg-magical-pink text-white font-pixel text-sm py-4 border-2 border-magical-dark shadow-pixel hover:bg-magical-dark transition-colors disabled:opacity-50 mt-6"
+                            >
+                                {processing
+                                    ? "CREATING ACCOUNT..."
+                                    : "🎮 START YOUR JOURNEY"}
+                            </motion.button>
+                        </form>
+
+                        {/* Login Link */}
+                        <div className="mt-6 pt-6 border-t-2 border-gray-200 text-center">
+                            <p className="font-pixel text-xs text-gray-600 mb-3">
+                                ALREADY HAVE AN ACCOUNT?
+                            </p>
+                            <Link
+                                href={route("login")}
+                                className="inline-block bg-white text-magical-pink font-pixel text-sm px-6 py-2 border-2 border-magical-pink hover:bg-magical-pink hover:text-white transition-colors"
+                            >
+                                LOGIN HERE
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Back to Home */}
+                    <div className="text-center mt-6">
+                        <Link
+                            href="/"
+                            className="font-pixel text-xs text-white/90 hover:text-white"
+                        >
+                            ← BACK TO HOME
+                        </Link>
+                    </div>
+                </motion.div>
+            </div>
+        </>
     );
 }
