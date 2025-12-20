@@ -180,6 +180,9 @@ class RecipeController extends Controller
     /**
      * Update recipe
      */
+    /**
+     * Update recipe
+     */
     public function update(Request $request, SavedRecipe $recipe)
     {
         if ($recipe->user_id !== Auth::id()) {
@@ -188,28 +191,29 @@ class RecipeController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // ✅ Optional on update
-            'ingredients' => 'required|string',
-            'instructions' => 'required|string',
-            'notes' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'ingredients' => 'nullable|string',
+            'instructions' => 'nullable|string',
         ]);
 
-        // ✅ HANDLE IMAGE UPLOAD (if new image provided)
+        // Handle image upload (if new image provided)
         if ($request->hasFile('image')) {
-            // Delete old image
-            if ($recipe->image && str_contains($recipe->image, 'storage/recipes/')) {
-                $oldPath = str_replace(asset('storage/'), '', $recipe->image);
-                Storage::disk('public')->delete($oldPath);
+            // Delete old image if it exists
+            if ($recipe->image && Storage::disk('public')->exists(str_replace('/storage/', '', $recipe->image))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $recipe->image));
             }
 
             // Upload new image
             $imagePath = $request->file('image')->store('recipes', 'public');
-            $validated['image'] = asset('storage/' . $imagePath);
+            $validated['image'] = '/storage/' . $imagePath;
+        } else {
+            // Keep the existing image
+            unset($validated['image']);
         }
 
         $recipe->update($validated);
 
-        return redirect()->route('recipes.show', $recipe->id)
+        return redirect()->route('dashboard')
             ->with('success', 'Recipe updated successfully!');
     }
 

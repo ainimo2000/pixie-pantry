@@ -167,29 +167,6 @@ export default function PixieChef() {
                             <div className="absolute -top-1 right-1 w-2 h-4 bg-yellow-100 border-2 border-white rounded-full" />
                         </div>
                     </motion.div>
-
-                    {/* CUTE ACCESSORIES */}
-                    {/* Spoon */}
-                    <motion.div
-                        className="absolute bottom-32 left-12 text-3xl drop-shadow-lg"
-                        animate={{ rotate: [0, -15, 15, 0] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                    >
-                        🥄
-                    </motion.div>
-
-                    {/* Pan */}
-                    <motion.div
-                        className="absolute bottom-28 right-12 text-3xl drop-shadow-lg"
-                        animate={{ rotate: [0, 15, -15, 0] }}
-                        transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            delay: 0.5,
-                        }}
-                    >
-                        🍳
-                    </motion.div>
                 </div>
 
                 {/* SPARKLES - PRETTIER */}

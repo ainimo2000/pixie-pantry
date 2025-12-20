@@ -8,6 +8,21 @@ export default function SearchResults({
     communityRecipes,
     searchQuery,
 }) {
+    // Helper function to get the correct route for a recipe
+    const getRecipeRoute = (recipe) => {
+        if (
+            recipe.source === "api" ||
+            recipe.id.toString().startsWith("api_")
+        ) {
+            // For API recipes, use the api_id or extract from id
+            const apiId =
+                recipe.api_id || recipe.id.toString().replace("api_", "");
+            return route("recipes.showApi", apiId);
+        }
+        // For user recipes, use normal route
+        return route("recipes.show", recipe.id);
+    };
+
     return (
         <>
             <Head title={`Search: ${searchQuery}`} />
@@ -39,7 +54,7 @@ export default function SearchResults({
                                 {myRecipes.map((recipe) => (
                                     <Link
                                         key={recipe.id}
-                                        href={route("recipes.show", recipe.id)}
+                                        href={getRecipeRoute(recipe)}
                                         className="bg-white border-4 border-magical-border shadow-pixel p-4 hover:shadow-xl transition-shadow"
                                     >
                                         <img
@@ -66,7 +81,7 @@ export default function SearchResults({
                                 {communityRecipes.map((recipe) => (
                                     <Link
                                         key={recipe.id}
-                                        href={route("recipes.show", recipe.id)}
+                                        href={getRecipeRoute(recipe)}
                                         className="bg-white border-4 border-magical-border shadow-pixel p-4 hover:shadow-xl transition-shadow"
                                     >
                                         <img
@@ -78,8 +93,13 @@ export default function SearchResults({
                                             {recipe.title}
                                         </h3>
                                         <p className="text-xs text-gray-600">
-                                            by {recipe.user?.name}
+                                            by {recipe.user?.name || "Unknown"}
                                         </p>
+                                        {recipe.source === "api" && (
+                                            <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-600 px-2 py-1 border border-purple-300 font-pixel">
+                                                API RECIPE
+                                            </span>
+                                        )}
                                     </Link>
                                 ))}
                             </div>

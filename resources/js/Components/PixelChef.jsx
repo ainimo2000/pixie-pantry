@@ -62,9 +62,7 @@ export default function PixelChef() {
                     repeat: Infinity,
                     ease: "easeInOut",
                 }}
-            >
-                👩‍🍳
-            </motion.div>
+            ></motion.div>
             <p className="font-pixel text-[8px] text-magical-dark mt-2 bg-white/80 px-2 py-1 rounded border-2 border-black inline-block">
                 CLICK ME!
             </p>

@@ -67,6 +67,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/recipes/{recipe}/unlike', [RecipeController::class, 'unlike'])->name('recipes.unlike');
 
     Route::get('/api-recipe/{id}', [RecipeController::class, 'showApiRecipe'])->name('api.recipe.show');
+
+    Route::get('/recipes/api/{id}', [RecipeController::class, 'showApiRecipe'])->name('recipes.showApi');
 });
 
 require __DIR__ . '/auth.php';

@@ -1,19 +1,41 @@
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import PixelNavbar from "@/Components/PixelNavbar";
 
 export default function Edit({ auth, recipe }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, processing, errors } = useForm({
         title: recipe.title || "",
-        image: null, // File object (null = keep current image)
+        image: null,
         ingredients: recipe.ingredients || "",
         instructions: recipe.instructions || "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("recipes.update", recipe.id), {
-            forceFormData: true,
+
+        // Prepare data to send
+        const submitData = {
             _method: "PUT",
+            title: data.title,
+            ingredients: data.ingredients,
+            instructions: data.instructions,
+        };
+
+        // Add image only if provided
+        if (data.image) {
+            submitData.image = data.image;
+        }
+
+        // Use router.post for file uploads
+        router.post(route("recipes.update", recipe.id), submitData, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                alert("Recipe updated successfully!");
+            },
+            onError: (errors) => {
+                console.error("Validation errors:", errors);
+                alert("Update failed. Check console for details.");
+            },
         });
     };
 
