@@ -2,7 +2,7 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 
 export default function SearchBar({
-    placeholder = "Search recipes...",
+    placeholder = "Search recipes",
     route: searchRoute,
     initialQuery = "",
 }) {

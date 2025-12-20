@@ -23,7 +23,7 @@ export default function SearchResults({
                     {/* Search Bar */}
                     <div className="mb-8">
                         <SearchBar
-                            placeholder="Search recipes..."
+                            placeholder="Search recipes"
                             route={route("search")}
                             initialQuery={searchQuery}
                         />

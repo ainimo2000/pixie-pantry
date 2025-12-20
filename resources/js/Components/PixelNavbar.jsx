@@ -55,7 +55,7 @@ export default function PixelNavbar() {
                     {user && (
                         <div className="hidden md:block flex-1 max-w-md">
                             <SearchBar
-                                placeholder="Search recipes..."
+                                placeholder="Search recipes"
                                 route={route("search")}
                             />
                         </div>
