@@ -297,9 +297,7 @@ function DeleteUserForm({ className = "" }) {
                         <p className="text-sm text-gray-600 mb-6">
                             Are you sure you want to delete your account? Once
                             your account is deleted, all of its resources and
-                            data will be permanently deleted. Please enter your
-                            password to confirm you would like to permanently
-                            delete your account.
+                            data will be permanently deleted.
                         </p>
 
                         <div className="space-y-6">

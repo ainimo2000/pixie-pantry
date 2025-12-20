@@ -19,10 +19,26 @@ export default function About() {
     ];
 
     const team = [
-        { name: "AIRAH", role: "Backend Developer", emoji: "⚙️" },
-        { name: "MARIA", role: "Frontend Developer", emoji: "🎨" },
-        { name: "YLLE", role: "UI/UX Designer", emoji: "✨" },
-        { name: "RAMELA", role: "QA Tester", emoji: "🔍" },
+        {
+            name: "Airah Nichole Montillano",
+            role: "Backend Developer",
+            image: "/images/montillano.png",
+        },
+        {
+            name: "Maria Nikka Polintan",
+            role: "Frontend Developer",
+            image: "/images/polintan.jpg",
+        },
+        {
+            name: "Kylle Mae Mercado",
+            role: "UI/UX Designer",
+            image: "/images/mercado.png",
+        },
+        {
+            name: "Ramela Chama Pelayo",
+            role: "QA Tester",
+            image: "/images/pelayo.jpg",
+        },
     ];
 
     return (

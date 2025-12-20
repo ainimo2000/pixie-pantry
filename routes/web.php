@@ -61,6 +61,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
+
+    // ===== LIKE/UNLIKE ROUTES =====
+    Route::post('/recipes/{recipe}/like', [RecipeController::class, 'like'])->name('recipes.like');
+    Route::delete('/recipes/{recipe}/unlike', [RecipeController::class, 'unlike'])->name('recipes.unlike');
 });
 
 require __DIR__ . '/auth.php';

@@ -139,7 +139,7 @@ export default function Welcome({ auth, recipes }) {
                                 >
                                     <div className="bg-yellow-300 border-2 border-white inline-block px-3 py-1 mb-4">
                                         <span className="font-pixel text-[8px] text-magical-dark">
-                                            🎮 COOKING ENGINE v1.0
+                                            🎮 BAKING ENGINE v1.0
                                         </span>
                                     </div>
                                     <h1 className="font-pixel text-6xl md:text-8xl text-white leading-none mb-4">

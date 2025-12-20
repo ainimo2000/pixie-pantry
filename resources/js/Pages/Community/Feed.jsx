@@ -160,7 +160,7 @@ export default function CommunityFeed({ auth, recipes, searchQuery = "" }) {
                         </div>
                     </div>
 
-                    {/* ALL RECIPES SECTION - STARTS AFTER SCROLL */}
+                    {/* ALL RECIPES SECTION */}
                     <div className="bg-magical-bg relative">
                         {/* DECORATIVE BACKGROUND */}
                         <div
