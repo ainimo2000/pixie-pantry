@@ -4,14 +4,16 @@ import PixelNavbar from "@/Components/PixelNavbar";
 export default function Create({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
-        image: "",
+        image: null,
         ingredients: "",
         instructions: "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("recipes.store"));
+        post(route("recipes.store_custom"), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -61,27 +63,50 @@ export default function Create({ auth }) {
                                 )}
                             </div>
 
-                            {/* IMAGE URL */}
+                            {/* IMAGE UPLOAD */}
                             <div>
                                 <label className="font-pixel text-xs text-magical-dark mb-1 block">
-                                    IMAGE URL *
+                                    📸 RECIPE IMAGE *
                                 </label>
+
+                                {/* File input */}
                                 <input
-                                    type="url"
-                                    name="image"
-                                    value={data.image}
+                                    type="file"
+                                    accept="image/*"
                                     onChange={(e) =>
-                                        setData("image", e.target.value)
+                                        setData("image", e.target.files[0])
                                     }
-                                    placeholder="https://example.com/image.jpg"
                                     required
-                                    className="w-full text-sm p-3 border-2 border-magical-dark focus:border-magical-pink focus:ring-0 font-sans"
+                                    className="w-full text-sm p-3 border-2 border-magical-dark focus:border-magical-pink focus:ring-0 font-sans file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-pixel file:bg-magical-pink file:text-white hover:file:bg-magical-dark file:cursor-pointer"
                                 />
+
+                                {/* Image preview */}
+                                {data.image && (
+                                    <div className="mt-3">
+                                        <p className="text-xs font-pixel text-magical-dark mb-2">
+                                            PREVIEW:
+                                        </p>
+                                        <img
+                                            src={URL.createObjectURL(
+                                                data.image
+                                            )}
+                                            alt="Preview"
+                                            className="w-40 h-40 object-cover border-4 border-magical-pink shadow-pixel"
+                                            style={{
+                                                imageRendering: "pixelated",
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
                                 {errors.image && (
                                     <div className="text-red-600 text-xs mt-1 font-sans">
                                         {errors.image}
                                     </div>
                                 )}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Accepted: JPG, PNG, GIF, WEBP (Max 2MB)
+                                </p>
                             </div>
 
                             {/* INGREDIENTS */}

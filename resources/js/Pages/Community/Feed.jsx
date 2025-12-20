@@ -67,7 +67,10 @@ export default function CommunityFeed({ auth, recipes, searchQuery = "" }) {
                                             <Link
                                                 href={
                                                     recipe.source === "api"
-                                                        ? "#"
+                                                        ? route(
+                                                              "api.recipe.show",
+                                                              recipe.api_id
+                                                          )
                                                         : route(
                                                               "recipes.show",
                                                               recipe.id

@@ -106,21 +106,28 @@ class PixelController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'image' => 'required|url',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // ✅ Changed to file upload
             'ingredients' => 'required|string',
             'instructions' => 'required|string',
         ]);
 
+        // ✅ HANDLE IMAGE UPLOAD
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('recipes', 'public');
+            $imagePath = asset('storage/' . $imagePath);
+        }
+
         SavedRecipe::create([
             'user_id' => Auth::id(),
             'title' => $validated['title'],
-            'image' => $validated['image'],
+            'image' => $imagePath, // ✅ Save the uploaded image path
             'ingredients' => $validated['ingredients'],
             'instructions' => $validated['instructions'],
             'api_id' => null,
         ]);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard')->with('success', 'Recipe created successfully!');
     }
 
     public function update(Request $request, string $id)

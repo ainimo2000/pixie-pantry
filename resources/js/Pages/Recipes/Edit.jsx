@@ -2,16 +2,19 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import PixelNavbar from "@/Components/PixelNavbar";
 
 export default function Edit({ auth, recipe }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         title: recipe.title || "",
-        image: recipe.image_url || "",
+        image: null, // File object (null = keep current image)
         ingredients: recipe.ingredients || "",
         instructions: recipe.instructions || "",
     });
 
     const submit = (e) => {
         e.preventDefault();
-        put(route("recipes.update", recipe.id));
+        post(route("recipes.update", recipe.id), {
+            forceFormData: true,
+            _method: "PUT",
+        });
     };
 
     return (
@@ -61,27 +64,67 @@ export default function Edit({ auth, recipe }) {
                                 )}
                             </div>
 
-                            {/* IMAGE URL */}
+                            {/* IMAGE UPLOAD */}
                             <div>
                                 <label className="font-pixel text-xs text-magical-dark mb-1 block">
-                                    IMAGE URL *
+                                    📸 RECIPE IMAGE
                                 </label>
+
+                                {/* Current image */}
+                                {recipe.image && !data.image && (
+                                    <div className="mb-3">
+                                        <p className="text-xs font-pixel text-gray-600 mb-2">
+                                            CURRENT IMAGE:
+                                        </p>
+                                        <img
+                                            src={recipe.image}
+                                            alt="Current"
+                                            className="w-40 h-40 object-cover border-4 border-gray-300 shadow-pixel"
+                                            style={{
+                                                imageRendering: "pixelated",
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* File input */}
                                 <input
-                                    type="url"
-                                    name="image"
-                                    value={data.image}
+                                    type="file"
+                                    accept="image/*"
                                     onChange={(e) =>
-                                        setData("image", e.target.value)
+                                        setData("image", e.target.files[0])
                                     }
-                                    placeholder="https://example.com/image.jpg"
-                                    required
-                                    className="w-full text-sm p-3 border-2 border-magical-dark focus:border-magical-pink focus:ring-0 font-sans"
+                                    className="w-full text-sm p-3 border-2 border-magical-dark focus:border-magical-pink focus:ring-0 font-sans file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-pixel file:bg-magical-pink file:text-white hover:file:bg-magical-dark file:cursor-pointer"
                                 />
+
+                                {/* New image preview */}
+                                {data.image && (
+                                    <div className="mt-3">
+                                        <p className="text-xs font-pixel text-magical-pink mb-2">
+                                            NEW IMAGE:
+                                        </p>
+                                        <img
+                                            src={URL.createObjectURL(
+                                                data.image
+                                            )}
+                                            alt="New preview"
+                                            className="w-40 h-40 object-cover border-4 border-magical-pink shadow-pixel"
+                                            style={{
+                                                imageRendering: "pixelated",
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
                                 {errors.image && (
                                     <div className="text-red-600 text-xs mt-1 font-sans">
                                         {errors.image}
                                     </div>
                                 )}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Leave empty to keep current image •
+                                    Accepted: JPG, PNG, GIF, WEBP (Max 2MB)
+                                </p>
                             </div>
 
                             {/* INGREDIENTS */}

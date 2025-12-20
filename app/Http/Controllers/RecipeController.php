@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class RecipeController extends Controller
@@ -99,6 +100,57 @@ class RecipeController extends Controller
     }
 
     /**
+     * Show API recipe details (from TheMealDB)
+     */
+    public function showApiRecipe($id)
+    {
+        try {
+            // Fetch full recipe details from TheMealDB API
+            $response = Http::timeout(5)->get("https://www.themealdb.com/api/json/v1/1/lookup.php?i={$id}");
+
+            if ($response->successful() && $response->json('meals')) {
+                $meal = $response->json('meals')[0];
+
+                // Extract all 20 possible ingredients
+                $ingredients = [];
+                for ($i = 1; $i <= 20; $i++) {
+                    $ingredient = $meal["strIngredient{$i}"] ?? '';
+                    $measure = $meal["strMeasure{$i}"] ?? '';
+
+                    if (!empty($ingredient)) {
+                        $ingredients[] = trim($measure) . ' ' . trim($ingredient);
+                    }
+                }
+
+                // Format recipe data for the view
+                $recipe = [
+                    'id' => 'api_' . $meal['idMeal'],
+                    'api_id' => $meal['idMeal'],
+                    'title' => $meal['strMeal'],
+                    'image' => $meal['strMealThumb'],
+                    'ingredients' => implode("\n", $ingredients),
+                    'instructions' => $meal['strInstructions'] ?? 'No instructions available.',
+                    'category' => $meal['strCategory'] ?? 'Unknown',
+                    'area' => $meal['strArea'] ?? 'Unknown',
+                    'youtube' => $meal['strYoutube'] ?? null,
+                    'source' => 'api',
+                    'created_at' => now(),
+                ];
+
+                return Inertia::render('Recipes/ShowApi', [
+                    'recipe' => $recipe,
+                ]);
+            }
+
+            abort(404, 'Recipe not found in TheMealDB');
+        } catch (\Exception $e) {
+            \Log::error('API Recipe Fetch Error: ' . $e->getMessage());
+            return redirect()->route('community.feed')
+                ->with('error', 'Unable to fetch recipe details from API.');
+        }
+    }
+
+    /**
      * Show recipe details
      */
     public function show(SavedRecipe $recipe)
@@ -130,18 +182,30 @@ class RecipeController extends Controller
      */
     public function update(Request $request, SavedRecipe $recipe)
     {
-        // Ensure user owns the recipe
         if ($recipe->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'image' => 'required|url',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // ✅ Optional on update
             'ingredients' => 'required|string',
             'instructions' => 'required|string',
             'notes' => 'nullable|string|max:1000',
         ]);
+
+        // ✅ HANDLE IMAGE UPLOAD (if new image provided)
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($recipe->image && str_contains($recipe->image, 'storage/recipes/')) {
+                $oldPath = str_replace(asset('storage/'), '', $recipe->image);
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            // Upload new image
+            $imagePath = $request->file('image')->store('recipes', 'public');
+            $validated['image'] = asset('storage/' . $imagePath);
+        }
 
         $recipe->update($validated);
 

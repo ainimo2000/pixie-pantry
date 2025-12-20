@@ -65,6 +65,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== LIKE/UNLIKE ROUTES =====
     Route::post('/recipes/{recipe}/like', [RecipeController::class, 'like'])->name('recipes.like');
     Route::delete('/recipes/{recipe}/unlike', [RecipeController::class, 'unlike'])->name('recipes.unlike');
+
+    Route::get('/api-recipe/{id}', [RecipeController::class, 'showApiRecipe'])->name('api.recipe.show');
 });
 
 require __DIR__ . '/auth.php';

@@ -1,92 +1,127 @@
-import React from "react";
 import { Head, Link } from "@inertiajs/react";
+import PixelNavbar from "@/Components/PixelNavbar";
 
-export default function ShowRecipe({ recipe }) {
-    // Helper function for date formatting
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString();
-    };
-
+export default function Show({ auth, recipe }) {
     return (
         <>
             <Head title={recipe.title} />
-            <div className="min-h-screen bg-magical-bg font-sans text-magical-dark relative p-6">
-                {/* Back Button */}
-                <Link
-                    href={window.route("dashboard")}
-                    className="absolute top-6 left-6 bg-magical-dark text-white font-pixel text-[8px] px-3 py-2 border-2 border-magical-pink shadow-pixel-sm hover:bg-magical-pink hover:text-white transition-colors"
-                >
-                    &lt; BACK TO QUEST LOG
-                </Link>
 
-                {/* Main Recipe Container */}
-                <div className="max-w-4xl mx-auto bg-white border-4 border-magical-border shadow-pixel p-8 mt-16">
-                    {/* Title */}
-                    <h1 className="font-pixel text-3xl text-center text-magical-pink mb-8 border-b-2 border-magical-border pb-4">
-                        {recipe.title}
-                    </h1>
+            <div className="min-h-screen bg-magical-bg">
+                <PixelNavbar />
 
-                    <div className="grid md:grid-cols-3 gap-8 mb-8">
-                        {/* Column 1: Image and Metadata */}
-                        <div className="md:col-span-1">
-                            {/* Image */}
-                            <div className="w-full border-4 border-magical-border p-1 bg-white mb-4">
-                                <img
-                                    // CRITICAL CHECK: Using the verified 'image_url' property
-                                    src={recipe.image_url}
-                                    alt={recipe.title}
-                                    className="w-full h-auto object-cover"
-                                    style={{ imageRendering: "pixelated" }}
-                                />
-                            </div>
+                {/* Decorative background */}
+                <div
+                    className="fixed inset-0 opacity-5 pointer-events-none"
+                    style={{
+                        backgroundImage:
+                            "radial-gradient(#8B008B 2px, transparent 2px)",
+                        backgroundSize: "20px 20px",
+                    }}
+                />
 
-                            <p className="text-[10px] text-gray-500 mt-2">
-                                Created: {formatDate(recipe.created_at)}
-                            </p>
+                <div className="max-w-4xl mx-auto px-6 py-10 relative z-10">
+                    {/* Back button */}
+                    <Link
+                        href={route("dashboard")}
+                        className="inline-flex items-center gap-2 bg-magical-dark text-white font-pixel text-xs px-4 py-2 border-2 border-magical-dark hover:bg-magical-pink transition-colors mb-6"
+                    >
+                        ← BACK TO QUEST LOG
+                    </Link>
 
-                            {/* Personal Note Display */}
-                            <div className="mt-4 pt-2 border-t border-gray-200">
-                                <h3 className="font-pixel text-[10px] text-magical-dark mb-1">
-                                    PERSONAL NOTE
-                                </h3>
-                                <p className="text-sm whitespace-pre-wrap">
-                                    {recipe.notes || "No notes for this entry."}
-                                </p>
-                            </div>
+                    {/* Recipe Card */}
+                    <div className="bg-white border-4 border-magical-border shadow-pixel p-8">
+                        {/* Recipe Title */}
+                        <h1 className="font-pixel text-4xl text-magical-pink mb-2 text-center border-b-4 border-magical-pink pb-4">
+                            {recipe.title}
+                        </h1>
 
-                            {/* Edit Button */}
-                            <div className="mt-8">
-                                <Link
-                                    href={window.route(
-                                        "recipes.edit",
-                                        recipe.id
+                        <hr className="my-6 border-2 border-magical-border" />
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* LEFT: Image & Meta */}
+                            <div>
+                                {/* Recipe Image */}
+                                <div className="w-full aspect-square bg-gray-200 border-4 border-magical-border mb-4 overflow-hidden">
+                                    {recipe.image ? (
+                                        <img
+                                            src={recipe.image}
+                                            alt={recipe.title}
+                                            className="w-full h-full object-cover"
+                                            style={{
+                                                imageRendering: "pixelated",
+                                            }}
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src =
+                                                    "https://via.placeholder.com/400x400?text=No+Image";
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-pixel text-sm">
+                                            NO IMAGE
+                                        </div>
                                     )}
-                                    className="bg-magical-pink text-white font-pixel text-[10px] px-4 py-2 border-2 border-magical-dark shadow-pixel-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all inline-block text-center"
-                                >
-                                    ⚔️ EDIT ENTRY
-                                </Link>
+                                </div>
+
+                                {/* Created Date */}
+                                <p className="text-xs text-gray-500">
+                                    Created:{" "}
+                                    {new Date(
+                                        recipe.created_at
+                                    ).toLocaleDateString()}
+                                </p>
+
+                                {/* Personal Note */}
+                                <div className="mt-6 p-4 bg-yellow-50 border-2 border-yellow-400">
+                                    <h3 className="font-pixel text-sm text-magical-dark mb-2">
+                                        PERSONAL NOTE
+                                    </h3>
+                                    <p className="text-xs text-gray-700">
+                                        {recipe.notes ||
+                                            "No notes for this entry."}
+                                    </p>
+                                </div>
+
+                                {/* Edit Button */}
+                                {auth.user.id === recipe.user_id && (
+                                    <Link
+                                        href={route("recipes.edit", recipe.id)}
+                                        className="block w-full mt-4 bg-magical-pink text-white font-pixel text-sm px-6 py-3 border-2 border-magical-dark text-center hover:bg-magical-dark transition-colors"
+                                    >
+                                        ✏️ EDIT ENTRY
+                                    </Link>
+                                )}
+                            </div>
+
+                            {/* RIGHT: Ingredients & Instructions */}
+                            <div>
+                                {/* Ingredients */}
+                                <div className="mb-8">
+                                    <h2 className="font-pixel text-xl text-magical-dark mb-4 border-b-2 border-magical-pink pb-2">
+                                        INGREDIENTS
+                                    </h2>
+                                    <div className="bg-purple-50 border-2 border-purple-300 p-4">
+                                        <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800">
+                                            {recipe.ingredients ||
+                                                "No ingredients listed."}
+                                        </pre>
+                                    </div>
+                                </div>
+
+                                {/* Instructions */}
+                                <div>
+                                    <h2 className="font-pixel text-xl text-magical-dark mb-4 border-b-2 border-magical-pink pb-2">
+                                        INSTRUCTIONS / PROCEDURE
+                                    </h2>
+                                    <div className="bg-pink-50 border-2 border-pink-300 p-4">
+                                        <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
+                                            {recipe.instructions ||
+                                                "No instructions provided."}
+                                        </pre>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Column 2: Ingredients */}
-                        <div className="md:col-span-2">
-                            <h2 className="font-pixel text-xl text-magical-dark mb-3">
-                                INGREDIENTS
-                            </h2>
-                            <pre className="whitespace-pre-wrap text-sm border-2 border-magical-dark p-4 bg-gray-100 h-64 overflow-y-auto">
-                                {recipe.ingredients}
-                            </pre>
-                        </div>
-                    </div>
-
-                    {/* Instructions (Full Width) */}
-                    <div className="mt-6">
-                        <h2 className="font-pixel text-xl text-magical-dark mb-3">
-                            INSTRUCTIONS / PROCEDURE
-                        </h2>
-                        <pre className="whitespace-pre-wrap text-sm border-2 border-magical-dark p-4 bg-gray-100 min-h-32">
-                            {recipe.instructions}
-                        </pre>
                     </div>
                 </div>
             </div>
