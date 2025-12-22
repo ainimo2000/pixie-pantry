@@ -62,3 +62,8 @@ Follow these steps to summon the portal on your local machine.
 ```bash
 git clone [https://github.com/YOUR-USERNAME/pixie-pantry.git](https://github.com/YOUR-USERNAME/pixie-pantry.git)
 cd pixie-pantry
+
+------
+## Documentation
+
+https://drive.google.com/file/d/1T9OM2cifybJPIGgBKtT-C72uK7SavJsE/view?usp=sharing
